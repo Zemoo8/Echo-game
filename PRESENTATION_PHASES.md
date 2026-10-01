@@ -23,7 +23,7 @@ removing any later work** from the project.
 | `PresentationGate` component | `Assets/Scripts/Presentation/PresentationGate.cs` | Put on any scene object; it switches itself off when its feature is hidden. |
 | Boot routing | `BootSceneController` | Picks the first scene for the phase (concept showcase, design showcase or main menu). |
 | Editor menu | **ECHO > Presentation** | One click per phase. The active phase has a checkmark. |
-| Debug overlay | `DevOverlay` (F1) | Shows FPS / scene / state / phase. Visible from the start in Phase 6. |
+| Debug overlay | `DevOverlay` (backquote key) | Shows FPS / scene / state / phase. Visible from the start in Phase 6. |
 
 ### Switching phase
 
@@ -46,7 +46,7 @@ Status key: **Ready** = can be demonstrated now · **Partial** = some parts exis
 | 6 | Testing | Phase 5 plus boss and music, debug overlay on, test plan & results, bug log, performance numbers (in `Docs/`) | `MainMenu` | Phase 5 + boss, music, debug overlay | Planned |
 | 7 | Final Product | The complete game end to end, including the ending cinematic | `MainMenu` | Everything except debug overlay and ads | Planned |
 | 8 | GamePix | Final game built through the GamePix plugin, tested in browser, `.gpx` package | `MainMenu` | Phase 7 + GamePix ads | Planned |
-| – | Everything | Development default: every feature on (debug overlay available with F1) | `MainMenu` | All | Default |
+| – | Everything | Development default: every feature on (debug overlay available with the backquote key) | `MainMenu` | All | Default |
 
 If a phase's start scene has not been built yet, Boot falls back to `MainMenu` and logs a warning.
 
@@ -65,3 +65,5 @@ Tags are created only on real commits at the moment a milestone is actually fini
 | Date | Commit / tag | Milestone | Notes |
 |------|--------------|-----------|-------|
 | 2026-10-01 | `13a1bdc` | Baseline | Untouched Unity 6000.2.7f2 URP project with the GamePix 6.4 plugin. |
+| 2026-10-01 | `a9eb981` | M0 foundation | 2D renderer, layers, presentation system, boot flow, docs. |
+| 2026-10-01 | tag `m0-foundation` | M0 complete | GamePix WebGL build tested in Chrome: Boot → MainMenu, systems spawn, dev overlay works, no blocking errors. |

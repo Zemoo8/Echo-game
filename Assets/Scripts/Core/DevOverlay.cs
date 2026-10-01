@@ -7,8 +7,8 @@ namespace Echo.Core
 {
     /// <summary>
     /// Small on-screen readout for testing sessions: FPS, scene, game state and presentation phase.
-    /// Toggle with F1. Only available when the DevOverlay feature is on; visible from the start
-    /// in the Testing presentation phase.
+    /// Toggle with the backquote key (`); F1 is avoided because browsers open their help page.
+    /// Only available when the DevOverlay feature is on; visible from the start in the Testing phase.
     /// </summary>
     public class DevOverlay : MonoBehaviour
     {
@@ -34,7 +34,7 @@ namespace Echo.Core
         void Update()
         {
             var keyboard = Keyboard.current;
-            if (keyboard != null && keyboard.f1Key.wasPressedThisFrame)
+            if (keyboard != null && keyboard.backquoteKey.wasPressedThisFrame)
                 visible = !visible;
 
             if (!visible)
