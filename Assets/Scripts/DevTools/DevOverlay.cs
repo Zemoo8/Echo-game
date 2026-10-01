@@ -76,8 +76,10 @@ namespace Echo.DevTools
             if (!visible)
                 return;
 
+            // Top-center: the energy HUD is top-left and the touch pause button top-right.
             style ??= new GUIStyle(GUI.skin.label) { fontSize = 14 };
-            GUI.Label(new Rect(8f, 8f, 480f, 110f), text, style);
+            const float width = 380f;
+            GUI.Label(new Rect((Screen.width - width) * 0.5f, 8f, width, 110f), text, style);
         }
     }
 }

@@ -41,9 +41,9 @@ Status key: **Ready** = can be demonstrated now · **Partial** = some parts exis
 | 1 | Conception | Pitch: "Every dash is a decision", core loop, story premise, target platform (GamePix/WebGL), scope | `Showcase_Concept` | Concept showcase only | Planned |
 | 2 | Diagrams / Schemas | Architecture & class diagrams, game-state machine, boss state machine, scene flow, energy economy per level (in `Docs/`) | `Showcase_Concept` | Concept showcase only | Planned |
 | 3 | Design | Visual style guide (palette, player, enemies, tiles), level layouts, UI mockups | `Showcase_Design` | Showcases + main menu | Planned |
-| 4 | Development | Playable core: movement, jump, dash, energy, hazards, enemies, switches, breakable doors, checkpoints, HUD, pause, save, touch controls. Levels 1–2. Placeholder visuals, no juice. | `MainMenu` | Core gameplay + game shell + Levels 1–2 + basic audio | Planned |
+| 4 | Development | Playable core: movement, jump, dash, energy, hazards, enemies, switches, breakable doors, checkpoints, HUD, pause, save, touch controls. Levels 1–2. Placeholder visuals, no juice. | `MainMenu` | Core gameplay + game shell + Levels 1–2 + basic audio | Partial: movement, jump, dash, energy, pickups, dash-only doors, energy HUD and touch controls are playable in the movement sandbox. Hazards, enemies, switches, checkpoints, pause menu, saving and Levels 1–2 are not built yet. |
 | 5 | 2D Animation | Phase 4 plus player/enemy animations, dash trail & afterimages, particles, camera feedback. Level 3. | `MainMenu` | Phase 4 + animation, VFX, camera feedback, Level 3 | Planned |
-| 6 | Testing | Phase 5 plus boss and music, debug overlay on, test plan & results, bug log, performance numbers (in `Docs/`) | `MainMenu` | Phase 5 + boss, music, debug overlay | Planned |
+| 6 | Testing | Phase 5 plus boss and music, debug overlay on, test plan & results, bug log, performance numbers (in `Docs/`) | `MainMenu` | Phase 5 + boss, music, debug overlay | Partial: 19 automated tests (EditMode + PlayMode) cover the presentation phases, energy, jump, coyote time, jump buffer, dash, air-dash limit, barriers and pickups. |
 | 7 | Final Product | The complete game end to end, including the ending cinematic | `MainMenu` | Everything except debug overlay and ads | Planned |
 | 8 | GamePix | Final game built through the GamePix plugin, tested in browser, `.gpx` package | `MainMenu` | Phase 7 + GamePix ads | Planned |
 | – | Everything | Development default: every feature on (debug overlay available with the backquote key) | `MainMenu` | All | Default |
@@ -67,3 +67,5 @@ Tags are created only on real commits at the moment a milestone is actually fini
 | 2026-10-01 | `13a1bdc` | Baseline | Untouched Unity 6000.2.7f2 URP project with the GamePix 6.4 plugin. |
 | 2026-10-01 | `a9eb981` | M0 foundation | 2D renderer, layers, presentation system, boot flow, docs. |
 | 2026-10-01 | tag `m0-foundation` | M0 complete | GamePix WebGL build tested in Chrome: Boot → MainMenu, systems spawn, dev overlay works, no blocking errors. |
+| 2026-10-01 | `d1f090b` | M1 player feel | Movement, jump, dash, energy, pickups, dash-only doors, HUD, touch controls, movement sandbox, 19 automated tests. |
+| 2026-10-01 | tag `m1-player-feel` | M1 complete | WebGL build played in Chrome at 60 fps: menu → sandbox → exit door → reload loop with no errors; dash measured at 30 u/s as tuned. |

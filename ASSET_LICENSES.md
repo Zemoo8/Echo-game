@@ -53,4 +53,5 @@ usage terms that allow commercial distribution.
 
 | Asset | Tool | Date | Terms | Used in |
 |-------|------|------|-------|---------|
-| _(none yet)_ | | | | |
+| Placeholder shapes: Square, RoundedRect, Circle, Diamond, DiamondOutline (`Assets/Art/Sprites/Generated/`) | Drawn in code by `EchoSpriteFactory` (this project) | 2026-10-01 | Original work, no third-party content | Graybox levels, player, energy pickups, HUD pips |
+| Touch control icons: TouchRing, IconArrow, IconJump, IconDash, IconPause (`Assets/Art/UI/Touch/`) | Drawn in code by `EchoSpriteFactory` (this project) | 2026-10-01 | Original work, no third-party content | On-screen touch buttons, main menu placeholder |
