@@ -104,6 +104,9 @@ namespace Echo.Presentation
 
         public static bool IsEnabled(Feature feature) => (Config.EnabledFeatures & feature) == feature;
 
+        /// <summary>Use a specific config instead of the Resources one (automated tests and tools).</summary>
+        public static void Override(PresentationConfig overrideConfig) => config = overrideConfig;
+
         // Keeps the cache correct when domain reload is disabled for faster play mode.
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void ResetCache() => config = null;

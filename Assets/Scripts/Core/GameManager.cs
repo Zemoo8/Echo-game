@@ -48,6 +48,17 @@ namespace Echo.Core
         void OnEnable() => GamePixManager.PlatformPauseChanged += OnPlatformPauseChanged;
         void OnDisable() => GamePixManager.PlatformPauseChanged -= OnPlatformPauseChanged;
 
+        void Update()
+        {
+            if (!GameInput.Pause.WasPressedThisFrame())
+                return;
+
+            if (State == GameState.Playing)
+                Pause();
+            else if (State == GameState.Paused)
+                Resume();
+        }
+
         public void SetState(GameState next)
         {
             if (next == State)

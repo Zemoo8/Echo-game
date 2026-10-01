@@ -1,10 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Echo.Core;
-using Echo.Platform;
 using Echo.Presentation;
 using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -12,8 +10,9 @@ using UnityEngine.Rendering.Universal;
 namespace Echo.EditorTools
 {
     /// <summary>
-    /// Re-runnable project setup for ECHO: 2D rendering, layers, core assets and the boot scenes.
-    /// It only creates what is missing and re-applies settings, so it is safe to run any time.
+    /// Re-runnable project setup for ECHO: project settings, 2D rendering, layers and physics,
+    /// generated sprites, prefabs and scenes. It only creates what is missing and re-applies
+    /// settings, so it is safe to run any time.
     /// Menu: ECHO > Setup > Run Project Setup.
     /// Headless: -batchmode -quit -executeMethod Echo.EditorTools.EchoProjectSetup.Run
     /// </summary>
@@ -26,8 +25,6 @@ namespace Echo.EditorTools
         const string PostProcessDataPath = "Packages/com.unity.render-pipelines.universal/Runtime/Data/PostProcessData.asset";
         static readonly string[] PipelineAssetPaths = { "Assets/Settings/PC_RPAsset.asset", "Assets/Settings/Mobile_RPAsset.asset" };
 
-        const string ScenesFolder = "Assets/Scenes";
-
         // Scenes in build order. Scenes that do not exist yet are skipped.
         static readonly string[] BuildScenes =
         {
@@ -35,6 +32,7 @@ namespace Echo.EditorTools
             "Levels/" + SceneNames.Level1, "Levels/" + SceneNames.Level2, "Levels/" + SceneNames.Level3,
             "Levels/" + SceneNames.Boss, "Levels/" + SceneNames.Ending,
             "Presentation/" + SceneNames.ConceptShowcase, "Presentation/" + SceneNames.DesignShowcase,
+            "Dev/" + SceneNames.DevSandbox,
         };
 
         // Back-to-front draw order.
@@ -47,25 +45,41 @@ namespace Echo.EditorTools
         // User physics layers, starting at 6 (0-5 are Unity built-ins).
         static readonly string[] PhysicsLayers =
         {
-            "Ground", "OneWayPlatform", "Player", "Enemy", "Hazard",
-            "Pickup", "Interactable", "Breakable", "Projectile",
+            Layers.Ground, Layers.OneWayPlatform, Layers.Player, Layers.Enemy, Layers.Hazard,
+            Layers.Pickup, Layers.Interactable, Layers.Breakable, Layers.Projectile,
         };
         const int FirstUserLayer = 6;
-
-        public static readonly Color BackgroundColor = new Color32(7, 10, 18, 255);
 
         [MenuItem("ECHO/Setup/Run Project Setup")]
         public static void Run()
         {
+            SetupProjectSettings();
             Setup2DRenderer();
             SetupTagManager();
-            SetupEditorAndPlayerSettings();
+            SetupPhysics();
             EnsurePresentationConfig();
-            EnsureSystemsPrefab();
-            EnsureScenes();
+
+            EchoSpriteFactory.EnsureAll();
+            EchoPrefabFactory.EnsurePlayerTuning();
+            EchoPrefabFactory.EnsurePlayerPrefab();
+            EchoPrefabFactory.EnsureSystemsPrefab();
+            EchoSceneFactory.EnsureAll();
             SetupBuildScenes();
+
             AssetDatabase.SaveAssets();
             Debug.Log("[ECHO Setup] Project setup complete.");
+        }
+
+        static void SetupProjectSettings()
+        {
+            EditorSettings.defaultBehaviorMode = EditorBehaviorMode.Mode2D;
+            EditorSettings.spritePackerMode = SpritePackerMode.SpriteAtlasV2;
+
+            PlayerSettings.companyName = "Zemoo8";
+            PlayerSettings.productName = "ECHO";
+            // 16:9. GamePix keeps this aspect ratio and scales the canvas to the screen.
+            PlayerSettings.defaultWebScreenWidth = 960;
+            PlayerSettings.defaultWebScreenHeight = 540;
         }
 
         static void Setup2DRenderer()
@@ -173,20 +187,48 @@ namespace Echo.EditorTools
             return id == 0 ? 1u : id;
         }
 
-        static void SetupEditorAndPlayerSettings()
+        static void SetupPhysics()
         {
-            EditorSettings.defaultBehaviorMode = EditorBehaviorMode.Mode2D;
-            EditorSettings.spritePackerMode = SpritePackerMode.SpriteAtlasV2;
+            // 60 Hz physics instead of the 50 Hz default: one step per frame on most screens.
+            var timeManager = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TimeManager.asset")[0];
+            Time.fixedDeltaTime = 1f / 60f;
+            EditorUtility.SetDirty(timeManager); // project settings are only written to disk when dirty
 
-            PlayerSettings.productName = "ECHO";
-            // 16:9. GamePix keeps this aspect ratio and scales the canvas to the screen.
-            PlayerSettings.defaultWebScreenWidth = 960;
-            PlayerSettings.defaultWebScreenHeight = 540;
+            var physics = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/Physics2DSettings.asset")[0]);
+            var matrix = physics.FindProperty("m_LayerCollisionMatrix");
+
+            int player = LayerMask.NameToLayer(Layers.Player);
+            int pickup = LayerMask.NameToLayer(Layers.Pickup);
+            int hazard = LayerMask.NameToLayer(Layers.Hazard);
+            int enemy = LayerMask.NameToLayer(Layers.Enemy);
+            int projectile = LayerMask.NameToLayer(Layers.Projectile);
+
+            // Pickups and hazards only react to the player.
+            for (int layer = 0; layer < 32; layer++)
+            {
+                SetCollision(matrix, pickup, layer, layer == player);
+                SetCollision(matrix, hazard, layer, layer == player);
+            }
+            SetCollision(matrix, enemy, enemy, false);
+            SetCollision(matrix, projectile, projectile, false);
+            physics.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        static void SetCollision(SerializedProperty matrix, int a, int b, bool collide)
+        {
+            SetBit(matrix.GetArrayElementAtIndex(a), b, collide);
+            SetBit(matrix.GetArrayElementAtIndex(b), a, collide);
+        }
+
+        static void SetBit(SerializedProperty row, int bit, bool on)
+        {
+            uint mask = 1u << bit;
+            row.uintValue = on ? row.uintValue | mask : row.uintValue & ~mask;
         }
 
         static void EnsurePresentationConfig()
         {
-            EnsureFolder("Assets", "Resources");
+            EnsureFolderPath("Assets/Resources");
             if (AssetDatabase.LoadAssetAtPath<PresentationConfig>(PresentationConfigPath) != null)
                 return;
 
@@ -194,87 +236,29 @@ namespace Echo.EditorTools
             Debug.Log($"[ECHO Setup] Created {PresentationConfigPath}");
         }
 
-        static void EnsureSystemsPrefab()
-        {
-            EnsureFolder("Assets", "Resources");
-
-            bool exists = AssetDatabase.LoadAssetAtPath<GameObject>(SystemsPrefabPath) != null;
-            var root = exists ? PrefabUtility.LoadPrefabContents(SystemsPrefabPath) : new GameObject("Systems");
-
-            EnsureComponent<GameManager>(root);
-            EnsureComponent<SceneLoader>(root);
-            EnsureComponent<GamePixManager>(root);
-            EnsureComponent<DevOverlay>(root);
-
-            PrefabUtility.SaveAsPrefabAsset(root, SystemsPrefabPath);
-            if (exists)
-                PrefabUtility.UnloadPrefabContents(root);
-            else
-                Object.DestroyImmediate(root);
-        }
-
-        static void EnsureComponent<T>(GameObject target) where T : Component
-        {
-            if (target.GetComponent<T>() == null)
-                target.AddComponent<T>();
-        }
-
-        static void EnsureScenes()
-        {
-            EnsureScene(SceneNames.Boot, () =>
-            {
-                CreateCamera();
-                new GameObject("Boot").AddComponent<BootSceneController>();
-            });
-
-            // Placeholder until the menu UI milestone.
-            EnsureScene(SceneNames.MainMenu, () => CreateCamera());
-        }
-
-        static void EnsureScene(string sceneName, System.Action populate)
-        {
-            string path = $"{ScenesFolder}/{sceneName}.unity";
-            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(path) != null)
-                return;
-
-            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-            populate();
-            EditorSceneManager.SaveScene(scene, path);
-            Debug.Log($"[ECHO Setup] Created {path}");
-        }
-
-        static Camera CreateCamera()
-        {
-            var go = new GameObject("Main Camera") { tag = "MainCamera" };
-            go.transform.position = new Vector3(0f, 0f, -10f);
-
-            var camera = go.AddComponent<Camera>();
-            camera.orthographic = true;
-            camera.orthographicSize = 6f;
-            camera.clearFlags = CameraClearFlags.SolidColor;
-            camera.backgroundColor = BackgroundColor;
-
-            go.AddComponent<UniversalAdditionalCameraData>();
-            go.AddComponent<AudioListener>();
-            return camera;
-        }
-
-        static void SetupBuildScenes()
+        public static void SetupBuildScenes()
         {
             var scenes = new List<EditorBuildSettingsScene>();
             foreach (string scene in BuildScenes)
             {
-                string path = $"{ScenesFolder}/{scene}.unity";
+                string path = $"{EchoSceneFactory.ScenesFolder}/{scene}.unity";
                 if (AssetDatabase.LoadAssetAtPath<SceneAsset>(path) != null)
                     scenes.Add(new EditorBuildSettingsScene(path, true));
             }
             EditorBuildSettings.scenes = scenes.ToArray();
         }
 
-        static void EnsureFolder(string parent, string name)
+        /// <summary>Creates every missing folder along an "Assets/..." path.</summary>
+        public static void EnsureFolderPath(string path)
         {
-            if (!AssetDatabase.IsValidFolder($"{parent}/{name}"))
-                AssetDatabase.CreateFolder(parent, name);
+            string current = "Assets";
+            foreach (string part in path.Split('/').Skip(1))
+            {
+                string next = $"{current}/{part}";
+                if (!AssetDatabase.IsValidFolder(next))
+                    AssetDatabase.CreateFolder(current, part);
+                current = next;
+            }
         }
     }
 }

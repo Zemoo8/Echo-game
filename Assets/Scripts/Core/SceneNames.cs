@@ -14,5 +14,8 @@ namespace Echo.Core
 
         public const string ConceptShowcase = "Showcase_Concept";
         public const string DesignShowcase = "Showcase_Design";
+
+        /// <summary>Graybox test chamber for movement and dash tuning.</summary>
+        public const string DevSandbox = "Sandbox_Movement";
     }
 }

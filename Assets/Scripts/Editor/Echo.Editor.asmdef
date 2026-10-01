@@ -1,0 +1,25 @@
+{
+    "name": "Echo.Editor",
+    "rootNamespace": "Echo.EditorTools",
+    "references": [
+        "Echo",
+        "GamePix",
+        "GamePix.Editor",
+        "Unity.InputSystem",
+        "UnityEngine.UI",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.Universal.Runtime",
+        "Unity.RenderPipelines.Universal.2D.Runtime"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
