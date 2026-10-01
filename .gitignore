@@ -112,3 +112,7 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# GamePix plugin build output (cleared on every GamePix build)
+/html5/
+*.gpx
