@@ -4,13 +4,15 @@ Palette is sampled from the Ansimuz lab corridor so everything sits in one world
 
 Usage:  python Tools/make_echo_art.py
 Output: Assets/Art/Pixel/...
+The logo is drawn with Kenney Future, so run Tools/import_assets.py first.
 """
 import math
 import os
 import random
-from PIL import Image
+from PIL import Image, ImageChops, ImageDraw, ImageFont
 
 OUT = os.path.join(os.path.dirname(__file__), "..", "Assets", "Art", "Pixel")
+LOGO_FONT = os.path.join(os.path.dirname(__file__), "..", "Assets", "ThirdParty", "Kenney", "Fonts", "KenneyFuture.ttf")
 
 
 def hexc(value, alpha=255):
@@ -39,6 +41,14 @@ EXIT = hexc("3DFF8F")
 EXIT_LIGHT = hexc("C8FFDD")
 DANGER = hexc("FF5A2A")
 DANGER_DARK = hexc("1A0A06")
+WHITE = hexc("F1F5FF")
+PANEL_FILL = (4, 14, 24, 215)
+PANEL_RIM = (0, 4, 16, 200)
+PANEL_EDGE = hexc("1F5F74")
+PANEL_EDGE_LIGHT = hexc("36A9C4")
+CELL_EMPTY_EDGE = hexc("2A5C70")
+CELL_EMPTY_FILL = (0, 18, 28, 190)
+CELL_LOW = hexc("1FB8E0")
 CLEAR = (0, 0, 0, 0)
 
 
@@ -203,6 +213,138 @@ def particle_textures():
     save(ring, "FX", "Ring.png")
 
 
+# --- UI ----------------------------------------------------------------------------------------
+# Shown at 3 screen pixels per art pixel at 960x540 (the canvas uses 96 reference px per unit).
+
+def ui_panel():
+    """16x16 panel, sliced with 6 px borders: translucent navy, dark rim, teal edge lit on the
+    top and left, chamfered top-left and bottom-right corners."""
+    size = 16
+    img = Image.new("RGBA", (size, size), CLEAR)
+    px = img.load()
+
+    def inside(x, y, inset):
+        chamfer = 4 - inset
+        if x < inset or y < inset or x > size - 1 - inset or y > size - 1 - inset:
+            return False
+        if (x - inset) + (y - inset) < chamfer:
+            return False
+        return (size - 1 - inset - x) + (size - 1 - inset - y) >= chamfer
+
+    for y in range(size):
+        for x in range(size):
+            if inside(x, y, 2):
+                px[x, y] = PANEL_FILL
+            elif inside(x, y, 1):
+                px[x, y] = PANEL_EDGE_LIGHT if y <= 3 or x <= 3 else PANEL_EDGE
+            elif inside(x, y, 0):
+                px[x, y] = PANEL_RIM
+    save(img, "UI", "Panel.png")
+
+
+def ui_select_bar():
+    """12x12 highlight behind the selected menu entry, sliced with 4 px borders: cyan wash,
+    brighter top and bottom lines, solid bar on the left."""
+    img = Image.new("RGBA", (12, 12), CLEAR)
+    px = img.load()
+    for y in range(12):
+        for x in range(12):
+            px[x, y] = ENERGY[:3] + (140 if y in (0, 11) else 70,)
+        px[0, y], px[1, y] = ENERGY_LIGHT, ENERGY
+    save(img, "UI", "SelectBar.png")
+
+
+def ui_energy_cells():
+    """8x14 HUD energy cells: full (cyan, lit stripe) and empty (dark glass, readable outline)."""
+    for name, full in (("CellFull", True), ("CellEmpty", False)):
+        img = Image.new("RGBA", (8, 14), CLEAR)
+        px = img.load()
+        for y in range(14):
+            for x in range(8):
+                edge = x in (0, 7) or y in (0, 13)
+                if x in (0, 7) and y in (0, 13):
+                    continue
+                if full:
+                    color = ENERGY_DEEP if edge else ENERGY_LIGHT if x == 2 else CELL_LOW if y >= 10 else ENERGY
+                else:
+                    color = CELL_EMPTY_EDGE if edge else CELL_EMPTY_FILL
+                px[x, y] = color
+        save(img, "UI", f"{name}.png")
+
+
+def ui_icon(name, rows, color, light=None, light_rows=0):
+    img = Image.new("RGBA", (len(rows[0]), len(rows)), CLEAR)
+    px = img.load()
+    for y, row in enumerate(rows):
+        for x, ch in enumerate(row):
+            if ch == "#":
+                px[x, y] = light if light and y < light_rows else color
+    save(img, "UI", f"{name}.png")
+
+
+def ui_icons():
+    # White, tinted at runtime: energy cyan normally, danger red when the meter is empty.
+    ui_icon("Bolt", ["....###", "...###.", "..###..", ".######", "######.", "..###..", ".###...", ".##....", "#......"],
+            hexc("C8D7E1"), WHITE, 4)
+    ui_icon("Chevron", ["#...", "##..", "###.", "####", "###.", "##..", "#..."], WHITE)
+
+
+def _dilate(mask, steps, diagonal=False):
+    offsets = [(1, 0), (-1, 0), (0, 1), (0, -1)]
+    if diagonal:
+        offsets += [(1, 1), (1, -1), (-1, 1), (-1, -1)]
+    for _ in range(steps):
+        grown = mask.copy()
+        for dx, dy in offsets:
+            grown = ImageChops.lighter(grown, ImageChops.offset(mask, dx, dy))
+        mask = grown
+    return mask
+
+
+def ui_logo():
+    """The ECHO wordmark: hard-edged Kenney Future letters, white over pale cyan with a scan line,
+    a dark outline and two cyan rings spreading outward like an echo."""
+    font = ImageFont.truetype(LOGO_FONT, 32)
+    letters = []
+    for ch in "ECHO":
+        glyph = Image.new("L", (80, 60), 0)
+        draw = ImageDraw.Draw(glyph)
+        draw.fontmode = "1"  # no anti-aliasing: pure pixels
+        draw.text((2, 2), ch, font=font, fill=255)
+        letters.append(glyph.crop(glyph.getbbox()))
+
+    spacing, pad = 5, 7
+    height = max(g.height for g in letters)
+    width = sum(g.width for g in letters) + spacing * (len(letters) - 1)
+    base = Image.new("L", (width + pad * 2, height + pad * 2), 0)
+    x = pad
+    for glyph in letters:
+        base.paste(glyph, (x, pad + height - glyph.height))
+        x += glyph.width + spacing
+
+    img = Image.new("RGBA", base.size, CLEAR)
+    px = img.load()
+    rings = [
+        (ImageChops.subtract(_dilate(base, 7, True), _dilate(base, 6, True)), ENERGY[:3] + (70,)),
+        (ImageChops.subtract(_dilate(base, 4, True), _dilate(base, 3, True)), ENERGY[:3] + (170,)),
+        (ImageChops.subtract(_dilate(base, 1), base), VOID),
+    ]
+    for mask, color in rings:
+        mp = mask.load()
+        for y in range(img.height):
+            for x in range(img.width):
+                if mp[x, y]:
+                    px[x, y] = color
+
+    bp = base.load()
+    scan_line = pad + int(height * 0.55)
+    for y in range(img.height):
+        for x in range(img.width):
+            if bp[x, y]:
+                px[x, y] = ENERGY_DEEP if y == scan_line else WHITE if y < scan_line else ENERGY_LIGHT
+    save(img, "UI", "Logo.png")
+
+
 if __name__ == "__main__":
     lab_block()
     lab_platform()
@@ -215,4 +357,9 @@ if __name__ == "__main__":
     barrier_emitter()
     depth_shade()
     particle_textures()
+    ui_panel()
+    ui_select_bar()
+    ui_energy_cells()
+    ui_icons()
+    ui_logo()
     print("Wrote ECHO pixel art to", os.path.abspath(OUT))

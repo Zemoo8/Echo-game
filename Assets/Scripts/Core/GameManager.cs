@@ -31,6 +31,10 @@ namespace Echo.Core
         public GameState State { get; private set; } = GameState.Boot;
         public bool IsPaused => State == GameState.Paused;
 
+        /// <summary>Frame of the last state change. Gameplay ignores input on that frame, so the
+        /// button press that closes a menu doesn't also make the player jump.</summary>
+        public int StateChangedFrame { get; private set; } = -1;
+
         /// <summary>Raised with (previous, current) whenever the state changes.</summary>
         public event Action<GameState, GameState> StateChanged;
 
@@ -77,6 +81,7 @@ namespace Echo.Core
 
             var previous = State;
             State = next;
+            StateChangedFrame = Time.frameCount;
             ApplyTimeScale();
             StateChanged?.Invoke(previous, next);
         }

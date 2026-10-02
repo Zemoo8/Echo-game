@@ -14,6 +14,7 @@ namespace Echo.EditorTools
     {
         const string ShapesFolder = "Assets/Art/Sprites/Generated";
         const string TouchFolder = "Assets/Art/UI/Touch";
+        const string UiFolder = "Assets/Art/UI/Generated";
         const int Supersampling = 4;
 
         public static string Square => $"{ShapesFolder}/Square.png";
@@ -26,11 +27,14 @@ namespace Echo.EditorTools
         public static string IconJump => $"{TouchFolder}/IconJump.png";
         public static string IconDash => $"{TouchFolder}/IconDash.png";
         public static string IconPause => $"{TouchFolder}/IconPause.png";
+        public static string Vignette => $"{UiFolder}/Vignette.png";
+        public static string ShadeLeft => $"{UiFolder}/ShadeLeft.png";
 
         public static void EnsureAll(bool regenerate = false)
         {
             EchoProjectSetup.EnsureFolderPath(ShapesFolder);
             EchoProjectSetup.EnsureFolderPath(TouchFolder);
+            EchoProjectSetup.EnsureFolderPath(UiFolder);
 
             // Coordinates below are normalized to [-1, 1] across the texture.
             Make(Square, 16, 16, (x, y) => true, regenerate);
@@ -52,6 +56,11 @@ namespace Echo.EditorTools
             Make(IconJump, 128, 128, (x, y) => InPolygon(x, y, ChevronUp), regenerate);
             Make(IconDash, 128, 128, (x, y) => InPolygon(x, y, ChevronRight) || InPolygon(x - 0.42f, y, ChevronRight), regenerate);
             Make(IconPause, 128, 128, (x, y) => Mathf.Abs(y) <= 0.5f && (Mathf.Abs(x - 0.25f) <= 0.12f || Mathf.Abs(x + 0.25f) <= 0.12f), regenerate);
+
+            // Soft gradients for full-screen UI: a 16:9 edge vignette (death flash) and a shade
+            // that darkens the left of the screen behind the main menu.
+            MakeGradient(Vignette, 128, 72, (x, y) => Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.7f, 1.4f, Mathf.Sqrt(x * x + y * y))), regenerate);
+            MakeGradient(ShadeLeft, 128, 4, (x, y) => Mathf.Pow(1f - (x + 1f) * 0.5f, 1.3f), regenerate);
         }
 
         static readonly Vector2[] ArrowRight = { new Vector2(-0.3f, -0.45f), new Vector2(0.45f, 0f), new Vector2(-0.3f, 0.45f) };
@@ -120,6 +129,33 @@ namespace Echo.EditorTools
             }
 
             texture.SetPixels32(pixels);
+            SaveSprite(path, texture, pixelsPerUnit, border);
+        }
+
+        /// <summary>A white texture whose alpha is given directly (coordinates in [-1, 1]).</summary>
+        static void MakeGradient(string path, int width, int height, Func<float, float, float> alpha, bool regenerate)
+        {
+            if (!regenerate && File.Exists(path))
+                return;
+
+            var texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            var pixels = new Color32[width * height];
+            for (int py = 0; py < height; py++)
+            {
+                for (int px = 0; px < width; px++)
+                {
+                    float x = (px + 0.5f) / width * 2f - 1f;
+                    float y = (py + 0.5f) / height * 2f - 1f;
+                    pixels[py * width + px] = new Color32(255, 255, 255, (byte)Mathf.RoundToInt(255f * Mathf.Clamp01(alpha(x, y))));
+                }
+            }
+
+            texture.SetPixels32(pixels);
+            SaveSprite(path, texture, 100f, 0);
+        }
+
+        static void SaveSprite(string path, Texture2D texture, float pixelsPerUnit, int border)
+        {
             File.WriteAllBytes(path, texture.EncodeToPNG());
             UnityEngine.Object.DestroyImmediate(texture);
 

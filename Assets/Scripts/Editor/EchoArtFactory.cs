@@ -47,8 +47,8 @@ namespace Echo.EditorTools
         public static Material DustMaterial => EnsureMaterial("FX_Dust", UnlitSpriteShader, $"{PixelArt}/FX/PixelSquare.png", 1f);
 
         /// <summary>
-        /// Builds the art data, rebuilds the player prefab and the movement sandbox with the new
-        /// look, and gives the main menu its music.
+        /// Builds the art data and rebuilds everything that shows it: the player prefab, the
+        /// persistent UI, the main menu and the movement sandbox.
         /// Headless: -batchmode -quit -executeMethod Echo.EditorTools.EchoArtFactory.ApplyVisualOverhaul
         /// </summary>
         [MenuItem("ECHO/Setup/Apply Visual Overhaul")]
@@ -57,9 +57,11 @@ namespace Echo.EditorTools
             if (!Application.isBatchMode && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                 return;
 
+            EchoSpriteFactory.EnsureAll();
             EnsureAll();
             EchoPrefabFactory.EnsurePlayerPrefab(rebuild: true);
-            EchoSceneFactory.EnsureSceneAudio(EchoSceneFactory.MainMenuPath, MusicId.Menu);
+            EchoUiFactory.RebuildSystemsUI();
+            EchoSceneFactory.RebuildMainMenu();
             EchoSceneFactory.RebuildSandbox();
             AssetDatabase.SaveAssets();
             Debug.Log("[ECHO Art] Visual overhaul applied.");

@@ -95,7 +95,7 @@ namespace Echo.Player
                 return false;
 
             var game = GameManager.Instance;
-            return game == null || game.State == GameState.Playing;
+            return game == null || (game.State == GameState.Playing && game.StateChangedFrame != Time.frameCount);
         }
 
         /// <summary>Hides and freezes the player (death). <see cref="Respawn"/> brings it back.</summary>

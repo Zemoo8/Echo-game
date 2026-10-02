@@ -23,7 +23,8 @@ that only a dash can break, so the player always has to keep one charge in reser
 | Jump (hold for higher) | Space, W, ↑, Z | South button (A / ✕) | ⌃ button |
 | Dash | Shift, X, J | West button (X / □), RB, RT | » button |
 | Pause | Esc, P | Start | ❚❚ button |
-| Restart level | R | Select | pause menu (not built yet) |
+| Restart level | R | Select | ❚❚ then Restart |
+| Menus | ↑ ↓ (or W / S), Enter or Space, Esc to go back | D-pad / stick, South, East | tap |
 | Dev overlay | ` (backquote) | | |
 
 ## Working on the project
@@ -41,9 +42,9 @@ that only a dash can break, so the player always has to keep one charge in reser
 | Step | How |
 |------|-----|
 | Third-party art and audio | `python Tools/import_assets.py <downloads>` copies the CC0 packs into `Assets/ThirdParty/` with ECHO's recolors (see `Tools/README.md`) |
-| ECHO's own pixel art | `python Tools/make_echo_art.py` draws tiles, energy cells, barriers and FX textures into `Assets/Art/Pixel/` |
+| ECHO's own pixel art | `python Tools/make_echo_art.py` draws tiles, energy cells, barriers, FX textures and the UI (panels, HUD cells, icons, logo) into `Assets/Art/Pixel/` |
 | Import settings | Automatic, by folder (`EchoImportRules`): 32 px per unit, point filtering, compressed audio |
-| Build the look | `ECHO > Setup > Apply Visual Overhaul` makes the effect materials, the player animation set, every particle effect, the audio library, and rebuilds the player prefab and the movement sandbox |
+| Build the look | `ECHO > Setup > Apply Visual Overhaul` makes the effect materials, the player animation set, every particle effect, the audio library, and rebuilds the player prefab, the persistent UI (`EchoUiFactory`), the main menu and the movement sandbox |
 | Swap art later | Edit the data assets, not code: `Settings/Visuals/PlayerVisuals` (animation frames), `Settings/Visuals/VfxLibrary` (effects), `Settings/Audio/AudioLibrary` (sounds and music) |
 | Screenshots | `ECHO > Tools > Capture Sandbox Screenshots` writes stills to `Docs/Screenshots/` |
 

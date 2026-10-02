@@ -2,7 +2,6 @@ using Echo.Audio;
 using Echo.Core;
 using Echo.Gameplay;
 using Echo.Player;
-using Echo.UI;
 using Echo.Visuals;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -39,21 +38,13 @@ namespace Echo.EditorTools
             EchoProjectSetup.SetupBuildScenes();
         }
 
-        /// <summary>Gives an existing scene its music (adds a SceneAudio object if it has none).</summary>
-        public static void EnsureSceneAudio(string path, MusicId music)
+        /// <summary>Rebuilds the title screen (code-generated, never hand-edited).</summary>
+        public static void RebuildMainMenu()
         {
-            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(path) == null)
+            if (!Application.isBatchMode && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                 return;
 
-            var scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Single);
-            var sceneAudio = Object.FindFirstObjectByType<SceneAudio>();
-            if (sceneAudio == null)
-                sceneAudio = new GameObject("SceneAudio").AddComponent<SceneAudio>();
-
-            var settings = new SerializedObject(sceneAudio);
-            settings.FindProperty("music").enumValueIndex = (int)music;
-            settings.ApplyModifiedPropertiesWithoutUndo();
-            EditorSceneManager.SaveScene(scene);
+            EnsureScene(MainMenuPath, BuildMainMenu, true);
         }
 
         static void EnsureScene(string path, System.Action populate, bool rebuild)
@@ -74,17 +65,53 @@ namespace Echo.EditorTools
             new GameObject("Boot").AddComponent<BootSceneController>();
         }
 
+        // Title screen: the hero waits by the lab's big window, the city glowing behind her, while
+        // the menu sits over the darker left half. Floor top at y = 0.
         static void BuildMainMenu()
         {
-            CreateCamera();
-            EchoLevelArt.CreateGlobalLight(1f, Color.white);
+            var camera = CreateCamera(EchoLevelArt.LabVoid);
+            camera.transform.position = new Vector3(0f, 2.6f, -10f);
+            EchoLevelArt.DustMotes(camera.transform);
+            EchoLevelArt.CreateGlobalLight(0.85f, new Color(0.85f, 0.93f, 1f));
+            SetMusic(new GameObject("SceneAudio").AddComponent<SceneAudio>(), MusicId.Menu);
 
-            var icon = new GameObject("PlayIcon");
-            icon.transform.localScale = Vector3.one * 2.5f;
-            EchoPrefabFactory.AddSprite(icon, EchoSpriteFactory.IconArrow, EchoPalette.Energy, "Default", 0);
+            var set = new GameObject("Set");
+            var backdrop = Child("Backdrop", set.transform);
+            var props = Child("Props", set.transform);
+            var lights = Child("Lights", set.transform);
 
-            var menu = new GameObject("MainMenu").AddComponent<MainMenuPlaceholder>();
-            EchoPrefabFactory.SetReference(menu, "pulsingIcon", icon.transform);
+            const float corridorFloor = -0.25f;
+            EchoLevelArt.FarCity(backdrop, -14f, 14f, corridorFloor);
+            // Corridor_RoomEnd's window lands at x = 1..7, right of the menu.
+            EchoLevelArt.CorridorPieces(backdrop, -13.5f, corridorFloor,
+                "Corridor_A", "Corridor_Machinery", "Corridor_RoomEnd", "Corridor_Terminal", "Corridor_A");
+            EchoLevelArt.UpperMachinery(backdrop, -14f, 14f, corridorFloor + 5.5f);
+
+            var floor = Child("Floor", set.transform);
+            Block("Floor", floor, -14f, -5f, 14f, 0f);
+            EchoLevelArt.DepthShade(floor, -14f, 14f, -0.6f);
+
+            EchoLevelArt.Prop(props, EchoLevelArt.LabProp("ServerCabinets"), -6.5f, 0f);
+            EchoLevelArt.Prop(props, EchoLevelArt.LabProp("CryoPod"), 9.4f, 0f);
+            var cell = new GameObject("EnergyCell");
+            cell.transform.SetParent(props, false);
+            cell.transform.position = new Vector3(1.8f, 1.1f, 0f);
+            EchoLevelArt.DressEnergyCell(cell);
+
+            EchoLevelArt.CeilingLamp(lights, -6f, 4.2f, false);
+            EchoLevelArt.CeilingLamp(lights, 2f, 4.2f, true);
+            EchoLevelArt.CeilingLamp(lights, 9f, 4.2f, false);
+
+            EchoLevelArt.Hero(set.transform, new Vector2(4.4f, 0f), faceLeft: true);
+
+            EchoUiFactory.BuildMainMenuUI(SceneNames.DevSandbox);
+        }
+
+        static void SetMusic(SceneAudio sceneAudio, MusicId music)
+        {
+            var settings = new SerializedObject(sceneAudio);
+            settings.FindProperty("music").enumValueIndex = (int)music;
+            settings.ApplyModifiedPropertiesWithoutUndo();
         }
 
         // Test chamber covering every M1 mechanic, left to right:
@@ -178,6 +205,9 @@ namespace Echo.EditorTools
             EchoPrefabFactory.SetReference(controller, "spawnPoint", spawn.transform);
             EchoPrefabFactory.SetReference(controller, "cameraFollow", follow);
             var levelSettings = new SerializedObject(controller);
+            // Stands in for Level 1 until the real levels exist, so it's honest about what it is.
+            levelSettings.FindProperty("sectorLabel").stringValue = "SECTOR 00";
+            levelSettings.FindProperty("levelTitle").stringValue = "TEST CHAMBER";
             levelSettings.FindProperty("startingEnergy").intValue = 2;
             levelSettings.FindProperty("maxEnergy").intValue = 5;
             levelSettings.ApplyModifiedPropertiesWithoutUndo();

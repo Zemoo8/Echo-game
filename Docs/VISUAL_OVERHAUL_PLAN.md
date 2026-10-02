@@ -46,10 +46,13 @@ resolution. 2D lights and a restrained bloom give the neon glow, reserved for li
 |--------|----------|
 | Ansimuz: **Warped City** (OpenGameArt, CC0 art; its music is excluded because it needs credit) | Player animations (recolored), drone + turret enemies, explosion, energy hit ring, lab props (doors, pods, vents, ladders, monitors) |
 | Ansimuz: **Sideview Sci-Fi Patreon Collection** (OpenGameArt, CC0) | Lab corridor backgrounds, cryo pods, computers, server racks, terminals, elevator, bulkhead walls, machinery backdrops, robot units |
-| Kenney: **Particle Pack**, **UI Pack Sci-Fi**, **Kenney Fonts** (CC0) | VFX textures, UI panels/bars, Kenney Future font |
+| Kenney: **Particle Pack**, **Kenney Fonts** (CC0) | VFX textures, Kenney Future font (all UI text, and the letters of the ECHO logo) |
 | Kenney: **Sci-fi Sounds**, **Impact Sounds**, **Interface Sounds**, **Digital Audio** (CC0) | All sound effects |
 | SRG774: **Dark Sci-Fi Audio Pack** (OpenGameArt, CC0 1.0) | Menu, level, boss and ending music; victory sting |
-| ECHO originals | Platform/wall tile set drawn in the Ansimuz palette, energy cells, energy barrier, VFX sprites, HUD |
+| ECHO originals | Platform/wall tile set drawn in the Ansimuz palette, energy cells, energy barrier, VFX sprites, and the whole UI kit: panels, selection bar, HUD energy cells, icons, logo |
+
+Kenney's **UI Pack (Space Expansion)** was downloaded for the UI, but its glossy light-grey style
+clashed with the dark pixel art, so the UI kit is drawn in the lab palette instead.
 
 Not used: the Unity Asset Store (importing needs the Unity account login inside the editor, which
 I can't do for you), AI image generators (the connected one has no API key; others have unclear
@@ -107,16 +110,26 @@ Updated 2026-10-02. Rebuild everything with **ECHO > Setup > Apply Visual Overha
 | 1. Pipeline | Done | Packs imported (`Tools/import_assets.py`), import rules by folder, pixel-perfect camera (640x360, 32 px/unit, stretched to the screen), bloom 0.5, data assets (`PlayerVisuals`, `VfxLibrary`, `AudioLibrary`) |
 | 2. Player | Done | Animated hero (idle, run, rise, apex flip, fall, land, dash, victory) with squash and stretch; dash trail, afterimages and burst; jump, landing and step dust; camera shake; hit-stop on barrier breaks; soft personal light |
 | 3. Level 1 look | Done (movement sandbox) | Lab panel blocks with depth shading, corridor backdrop, city through the windows (parallax), upper machinery, props, flickering ceiling lights, pit warning stripes and red glow, animated energy cells, scrolling barrier fields, dust motes |
-| 4. UI | Not started | HUD still uses the graybox pips; main menu is still the placeholder |
+| 4. UI | Done | Pixel UI kit drawn in the lab palette (panel, selection bar, energy cells, icons, ECHO logo), Kenney Future text. Title screen over the lab with the hero at the city window; music and sound switches saved in PlayerPrefs; credits. Energy meter: segmented cells that pop in and flash out, a glow on the cell the next dash uses, a red blink when empty, a shake when a dash is denied. Level title card, pause menu, red death vignette, "sector cleared" card with time, dashes and resets. Fades on every scene load and on respawn. Everything is built in code by `EchoUiFactory` |
 | 5. Audio | Wired, not yet heard in a test | 16 sound effects, 6 music tracks with ambience beds, crossfades; the sandbox plays the Lab track, the menu the Menu track |
 | 6. Biome kits 2–4 | Not started | Security and Core art is imported and recolored, waiting for levels 2–3 |
 
 **Verified:**
-- 19/19 automated tests pass (9 EditMode, 10 PlayMode).
+- 26/26 automated tests pass (9 EditMode, 17 PlayMode). The 7 new PlayMode tests drive the real
+  scenes: Play from the menu, the title card, the energy meter, pause and resume, death and
+  respawn, level complete and reload, and the saved sound switches.
 - The WebGL build loads in Chrome. The menu leads to the sandbox, which shows the new look at the right scale. A dash showed its trail, afterimages and burst, and the energy HUD dropped from 2 to 1.
-- Stills are in `Docs/Screenshots/`.
+- UI in the WebGL build (Chrome, keyboard and mouse hover): menu navigation with wrap-around, the
+  music and sound switches (still set after a page reload), credits and back, Play, the title card,
+  the pause menu and its Main Menu entry, the death flash and respawn, and the level-complete card
+  followed by the reload. Two small tweaks came after that browser pass (a softer death vignette and
+  a cap on the UI animation timestep); the final build was re-checked in the browser for the menu,
+  title card and HUD, and the tweaks themselves are covered by the PlayMode tests.
+- Stills are in `Docs/Screenshots/`. The `ui_*` ones are frames copied straight from the WebGL
+  build's canvas: menu, level title card, pause menu, credits, level complete.
 
 **Not yet checked in the browser:**
+- Touch controls and the pause menu on a phone.
 - Jump flip and landing dust.
 - Pickup burst, barrier shatter, exit shatter, victory pose.
 - Sound and music.

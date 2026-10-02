@@ -7,19 +7,31 @@ using UnityEngine.UI;
 namespace Echo.UI
 {
     /// <summary>
-    /// Energy meter: one pip per charge, filled pips are dashes available.
-    /// Binds automatically to whichever player is active.
+    /// Energy meter: one cell per charge, filled cells are dashes available. The cell the next
+    /// dash will use glows; an empty meter blinks the bolt icon red; a dash with no energy shakes
+    /// the meter. Binds automatically to whichever player is active.
     /// </summary>
     public class EnergyHud : MonoBehaviour
     {
-        [Tooltip("Inactive child image cloned for each pip.")]
-        [SerializeField] Image pipTemplate;
-        [SerializeField] Sprite fullSprite;
-        [SerializeField] Sprite emptySprite;
-        [SerializeField] Color emptyColor = new Color(1f, 1f, 1f, 0.25f);
+        const float ShakeDecay = 4f;
+        const float ShakeDistance = 5f;
 
-        readonly List<Image> pips = new List<Image>();
-        EnergySystem bound;
+        [Tooltip("Inactive child cloned for each energy cell.")]
+        [SerializeField] EnergyCellView cellTemplate;
+        [SerializeField] Image icon;
+        [Tooltip("Moved sideways when a dash is denied.")]
+        [SerializeField] RectTransform shakeTarget;
+
+        readonly List<EnergyCellView> cells = new List<EnergyCellView>();
+        PlayerController bound;
+        int current;
+        int max;
+        bool shown;
+        bool warningShown;
+        float shake;
+        Vector2 shakeHome;
+
+        void Awake() => shakeHome = shakeTarget.anchoredPosition;
 
         void OnEnable()
         {
@@ -32,42 +44,71 @@ namespace Echo.UI
         {
             PlayerController.Activated -= Bind;
             Unbind();
+            shake = 0f;
+            shakeTarget.anchoredPosition = shakeHome;
         }
 
         void Bind(PlayerController player)
         {
             Unbind();
-            bound = player.Energy;
-            bound.Changed += Show;
-            Show(bound.Current, bound.Max);
+            bound = player;
+            bound.Energy.Changed += Show;
+            bound.Dash.DashDenied += OnDashDenied;
+            shown = false; // the first fill of a new player appears without animation
+            Show(bound.Energy.Current, bound.Energy.Max);
         }
 
         void Unbind()
         {
             if (bound != null)
-                bound.Changed -= Show;
+            {
+                bound.Energy.Changed -= Show;
+                bound.Dash.DashDenied -= OnDashDenied;
+            }
             bound = null;
         }
 
-        void Show(int current, int max)
+        void Show(int energy, int capacity)
         {
-            while (pips.Count < max)
+            while (cells.Count < capacity)
             {
-                var pip = Instantiate(pipTemplate, pipTemplate.transform.parent);
-                pip.gameObject.SetActive(true);
-                pips.Add(pip);
+                var cell = Instantiate(cellTemplate, cellTemplate.transform.parent);
+                cell.gameObject.SetActive(true);
+                cells.Add(cell);
             }
 
-            for (int i = 0; i < pips.Count; i++)
+            for (int i = 0; i < cells.Count; i++)
             {
-                bool exists = i < max;
-                pips[i].gameObject.SetActive(exists);
-                if (!exists)
-                    continue;
+                bool exists = i < capacity;
+                cells[i].gameObject.SetActive(exists);
+                if (exists)
+                    cells[i].Set(i < energy, i == energy - 1, shown);
+            }
 
-                bool full = i < current;
-                pips[i].sprite = full ? fullSprite : emptySprite;
-                pips[i].color = full ? EchoPalette.Energy : emptyColor;
+            current = energy;
+            max = capacity;
+            shown = true;
+        }
+
+        void OnDashDenied() => shake = 1f;
+
+        void Update()
+        {
+            bool warning = max > 0 && current == 0;
+            if (warning || warningShown)
+            {
+                float pulse = warning ? UiEase.Pulse(7f) : 0f;
+                icon.color = Color.Lerp(EchoPalette.Energy, EchoPalette.Hazard, pulse);
+                for (int i = 0; i < max && i < cells.Count; i++)
+                    cells[i].SetWarning(pulse);
+                warningShown = warning;
+            }
+
+            if (shake > 0f)
+            {
+                shake = Mathf.MoveTowards(shake, 0f, UiEase.DeltaTime * ShakeDecay);
+                float offset = Mathf.Sin(Time.unscaledTime * 70f) * ShakeDistance * shake;
+                shakeTarget.anchoredPosition = shakeHome + new Vector2(offset, 0f);
             }
         }
     }

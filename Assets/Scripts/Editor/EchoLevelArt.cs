@@ -91,6 +91,22 @@ namespace Echo.EditorTools
             PlaceBottom(root, "Corridor_Exit", exit, new Vector2(exitX, floorY), "Background", 2);
         }
 
+        /// <summary>Lab corridor segments placed left to right from <paramref name="xMin"/>, in the order given.</summary>
+        public static void CorridorPieces(Transform parent, float xMin, float floorY, params string[] pieces)
+        {
+            var root = new GameObject("Corridor").transform;
+            root.SetParent(parent, false);
+
+            float x = xMin;
+            foreach (string piece in pieces)
+            {
+                var sprite = EchoArtFactory.LoadSprite($"{Lab}/{piece}.png");
+                float width = sprite.bounds.size.x;
+                PlaceBottom(root, piece, sprite, new Vector2(x + width * 0.5f, floorY), "Background", 1);
+                x += width;
+            }
+        }
+
         /// <summary>
         /// The city seen through the corridor's windows: a slow parallax strip behind everything.
         /// </summary>
@@ -277,6 +293,32 @@ namespace Echo.EditorTools
                 capRenderer.sortingOrder = 1;
             }
             return field;
+        }
+
+        /// <summary>
+        /// The hero as scenery (title screen): her idle loop and personal light, no gameplay parts.
+        /// </summary>
+        public static GameObject Hero(Transform parent, Vector2 feet, bool faceLeft)
+        {
+            var frames = EchoArtFactory.EnsurePlayerVisuals().idle.frames;
+            var go = new GameObject("Hero");
+            go.transform.SetParent(parent, false);
+            go.transform.position = feet;
+            var renderer = go.AddComponent<SpriteRenderer>();
+            renderer.sprite = frames[0];
+            renderer.flipX = faceLeft;
+            renderer.sortingLayerName = "Player";
+            var flipbook = go.AddComponent<SpriteFlipbook>();
+            SetFrames(flipbook, frames, EchoArtFactory.EnsurePlayerVisuals().idle.framesPerSecond);
+            var settings = new SerializedObject(flipbook);
+            settings.FindProperty("randomStart").boolValue = false;
+            settings.ApplyModifiedPropertiesWithoutUndo();
+
+            var glow = new GameObject("Glow");
+            glow.transform.SetParent(go.transform, false);
+            glow.transform.localPosition = new Vector3(0f, 1f, 0f);
+            AddPointLight(glow, new Color(0.75f, 0.92f, 1f), 0.4f, 2.6f);
+            return go;
         }
 
         // --- atmosphere -------------------------------------------------------------------------

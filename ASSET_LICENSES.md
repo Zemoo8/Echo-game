@@ -45,7 +45,7 @@ original license file as `LICENSE.txt`.
 
 | Font | Source | License | Used in |
 |------|--------|---------|---------|
-| Kenney Future, Kenney Future Narrow (`Assets/ThirdParty/Kenney/Fonts/`) | https://kenney.nl/assets/kenney-fonts | CC0 (Kenney) | UI (planned for the UI pass) |
+| Kenney Future, Kenney Future Narrow (`Assets/ThirdParty/Kenney/Fonts/`) | https://kenney.nl/assets/kenney-fonts | CC0 (Kenney) | All UI text (Kenney Future); the ECHO logo is drawn from its letters. Kenney Future Narrow is imported but unused |
 
 ## VFX / Shaders
 
@@ -61,6 +61,8 @@ usage terms that allow commercial distribution.
 
 | Asset | Tool | Date | Terms | Used in |
 |-------|------|------|-------|---------|
-| Placeholder shapes: Square, RoundedRect, Circle, Diamond, DiamondOutline (`Assets/Art/Sprites/Generated/`) | Drawn in code by `EchoSpriteFactory` (this project) | 2026-10-01 | Original work, no third-party content | Graybox levels, player, energy pickups, HUD pips |
-| Touch control icons: TouchRing, IconArrow, IconJump, IconDash, IconPause (`Assets/Art/UI/Touch/`) | Drawn in code by `EchoSpriteFactory` (this project) | 2026-10-01 | Original work, no third-party content | On-screen touch buttons, main menu placeholder |
+| Placeholder shapes: Square, RoundedRect, Circle, Diamond, DiamondOutline (`Assets/Art/Sprites/Generated/`) | Drawn in code by `EchoSpriteFactory` (this project) | 2026-10-01 | Original work, no third-party content | Square: UI fills and dividers. The other shapes were for the graybox and are no longer used |
+| Touch control icons: TouchRing, IconArrow, IconJump, IconDash, IconPause (`Assets/Art/UI/Touch/`) | Drawn in code by `EchoSpriteFactory` (this project) | 2026-10-01 | Original work, no third-party content | On-screen touch buttons |
+| UI gradients: Vignette, ShadeLeft (`Assets/Art/UI/Generated/`) | Drawn in code by `EchoSpriteFactory` (this project) | 2026-10-02 | Original work, no third-party content | Death flash, main menu backdrop shade |
+| ECHO UI pixel art: panel, selection bar, HUD energy cells, bolt and chevron icons, ECHO logo (`Assets/Art/Pixel/UI/`) | Drawn in code by `Tools/make_echo_art.py` (this project); the logo's letters are rendered from Kenney Future (CC0) | 2026-10-02 | Original work; the font is CC0 | HUD, menus, level cards |
 | ECHO pixel art: lab block and platform tiles, depth shade, hazard stripes, pit glow, energy cells, energy barrier and exit fields, barrier emitter, pixel/ring particle textures (`Assets/Art/Pixel/`) | Drawn in code by `Tools/make_echo_art.py` (this project), colors sampled from the Ansimuz lab palette | 2026-10-01 | Original work, no third-party content | Level 1 look, pickups, barriers, VFX |

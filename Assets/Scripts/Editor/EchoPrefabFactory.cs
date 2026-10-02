@@ -2,18 +2,13 @@ using Echo.Core;
 using Echo.DevTools;
 using Echo.Platform;
 using Echo.Player;
-using Echo.UI;
 using Echo.Visuals;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.InputSystem.OnScreen;
-using UnityEngine.InputSystem.UI;
-using UnityEngine.UI;
 
 namespace Echo.EditorTools
 {
-    /// <summary>Builds ECHO's code-generated prefabs: the Player and the persistent Systems.</summary>
+    /// <summary>Builds ECHO's code-generated prefabs: the Player and the persistent Systems (UI: <see cref="EchoUiFactory"/>).</summary>
     public static class EchoPrefabFactory
     {
         public const string PlayerPrefabPath = "Assets/Prefabs/Player/Player.prefab";
@@ -150,104 +145,13 @@ namespace Echo.EditorTools
             EnsureComponent<DevOverlay>(root);
 
             if (root.transform.Find("UI") == null)
-                BuildUI(root.transform);
+                EchoUiFactory.BuildSystemsUI(root.transform);
 
             PrefabUtility.SaveAsPrefabAsset(root, path);
             if (exists && !rebuild)
                 PrefabUtility.UnloadPrefabContents(root);
             else
                 Object.DestroyImmediate(root);
-        }
-
-        static void BuildUI(Transform systems)
-        {
-            var ui = new GameObject("UI");
-            ui.transform.SetParent(systems, false);
-
-            var eventSystem = new GameObject("EventSystem");
-            eventSystem.transform.SetParent(ui.transform, false);
-            eventSystem.AddComponent<EventSystem>();
-            eventSystem.AddComponent<InputSystemUIInputModule>();
-
-            var canvasObject = new GameObject("GameplayCanvas", typeof(RectTransform));
-            canvasObject.transform.SetParent(ui.transform, false);
-            var canvas = canvasObject.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 10;
-            var scaler = canvasObject.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(960f, 540f);
-            scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
-            scaler.matchWidthOrHeight = 1f; // landscape phones vary in width; keep sizes tied to height
-            canvasObject.AddComponent<GraphicRaycaster>();
-            var gameplayUI = canvasObject.AddComponent<GameplayUI>();
-
-            // HUD
-            var hud = CreateRect("Hud", canvasObject.transform);
-            Stretch(hud);
-            SetReference(gameplayUI, "hudRoot", hud.gameObject);
-
-            var energy = CreateRect("EnergyHud", hud);
-            energy.anchorMin = energy.anchorMax = energy.pivot = new Vector2(0f, 1f);
-            energy.anchoredPosition = new Vector2(24f, -20f);
-            energy.sizeDelta = new Vector2(300f, 32f);
-            var layout = energy.gameObject.AddComponent<HorizontalLayoutGroup>();
-            layout.spacing = 6f;
-            layout.childControlWidth = layout.childControlHeight = false;
-            layout.childForceExpandWidth = layout.childForceExpandHeight = false;
-            var energyHud = energy.gameObject.AddComponent<EnergyHud>();
-
-            var pip = CreateRect("PipTemplate", energy);
-            pip.sizeDelta = new Vector2(28f, 28f);
-            var pipImage = pip.gameObject.AddComponent<Image>();
-            pipImage.sprite = EchoSpriteFactory.Load(EchoSpriteFactory.Diamond);
-            pipImage.raycastTarget = false;
-            pip.gameObject.SetActive(false);
-            SetReference(energyHud, "pipTemplate", pipImage);
-            SetReference(energyHud, "fullSprite", EchoSpriteFactory.Load(EchoSpriteFactory.Diamond));
-            SetReference(energyHud, "emptySprite", EchoSpriteFactory.Load(EchoSpriteFactory.DiamondOutline));
-
-            // Touch controls: each button presses a virtual gamepad control.
-            var touch = CreateRect("TouchControls", canvasObject.transform);
-            Stretch(touch);
-            var touchControls = touch.gameObject.AddComponent<TouchControls>();
-            var buttons = CreateRect("Buttons", touch);
-            Stretch(buttons);
-            SetReference(touchControls, "buttonsRoot", buttons.gameObject);
-
-            var bottomLeft = new Vector2(0f, 0f);
-            var bottomRight = new Vector2(1f, 0f);
-            var topRight = new Vector2(1f, 1f);
-            TouchButton("Left", buttons, bottomLeft, new Vector2(95f, 85f), 130f, "<Gamepad>/dpad/left", EchoSpriteFactory.IconArrow, 180f);
-            TouchButton("Right", buttons, bottomLeft, new Vector2(245f, 85f), 130f, "<Gamepad>/dpad/right", EchoSpriteFactory.IconArrow, 0f);
-            TouchButton("Jump", buttons, bottomRight, new Vector2(-100f, 100f), 150f, "<Gamepad>/buttonSouth", EchoSpriteFactory.IconJump, 0f);
-            TouchButton("Dash", buttons, bottomRight, new Vector2(-260f, 75f), 125f, "<Gamepad>/buttonWest", EchoSpriteFactory.IconDash, 0f);
-            TouchButton("Pause", buttons, topRight, new Vector2(-50f, -50f), 70f, "<Gamepad>/start", EchoSpriteFactory.IconPause, 0f);
-            buttons.gameObject.SetActive(false);
-        }
-
-        static void TouchButton(string name, Transform parent, Vector2 anchor, Vector2 position, float size,
-                                string controlPath, string iconPath, float iconRotation)
-        {
-            var rect = CreateRect(name, parent);
-            rect.anchorMin = rect.anchorMax = anchor;
-            rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.anchoredPosition = position;
-            rect.sizeDelta = new Vector2(size, size);
-
-            var ring = rect.gameObject.AddComponent<Image>();
-            ring.sprite = EchoSpriteFactory.Load(EchoSpriteFactory.TouchRing);
-            ring.color = EchoPalette.PlayerBody;
-            rect.gameObject.AddComponent<OnScreenButton>().controlPath = controlPath;
-            rect.gameObject.AddComponent<TouchButtonVisual>();
-
-            var icon = CreateRect("Icon", rect);
-            Stretch(icon);
-            icon.localEulerAngles = new Vector3(0f, 0f, iconRotation);
-            var iconImage = icon.gameObject.AddComponent<Image>();
-            iconImage.sprite = EchoSpriteFactory.Load(iconPath);
-            iconImage.color = EchoPalette.PlayerBody;
-            iconImage.raycastTarget = false;
         }
 
         static Gradient Fade(Color color, float alpha)
@@ -257,20 +161,6 @@ namespace Echo.EditorTools
                 new[] { new GradientColorKey(color, 0f), new GradientColorKey(color, 1f) },
                 new[] { new GradientAlphaKey(alpha, 0f), new GradientAlphaKey(0f, 1f) });
             return gradient;
-        }
-
-        static RectTransform CreateRect(string name, Transform parent)
-        {
-            var go = new GameObject(name, typeof(RectTransform));
-            go.transform.SetParent(parent, false);
-            return (RectTransform)go.transform;
-        }
-
-        static void Stretch(RectTransform rect)
-        {
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = rect.offsetMax = Vector2.zero;
         }
 
         public static SpriteRenderer AddSprite(GameObject target, string spritePath, Color color, string sortingLayer, int order)

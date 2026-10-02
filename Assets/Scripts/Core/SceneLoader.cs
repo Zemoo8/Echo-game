@@ -1,16 +1,21 @@
 using System;
 using System.Collections;
 using System.IO;
+using Echo.UI;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace Echo.Core
 {
     /// <summary>
-    /// Loads scenes asynchronously, one at a time. Lives on the persistent Systems prefab.
+    /// Loads scenes asynchronously, one at a time, fading out and back in around the load.
+    /// Lives on the persistent Systems prefab.
     /// </summary>
     public class SceneLoader : MonoBehaviour
     {
+        const float FadeOutTime = 0.3f;
+        const float FadeInTime = 0.4f;
+
         public static SceneLoader Instance { get; private set; }
 
         public bool IsLoading { get; private set; }
@@ -50,11 +55,17 @@ namespace Echo.Core
         {
             IsLoading = true;
 
+            var fader = ScreenFader.Instance;
+            if (fader != null)
+                yield return fader.FadeOut(FadeOutTime);
+
             AsyncOperation operation = SceneManager.LoadSceneAsync(sceneName);
             while (!operation.isDone)
                 yield return null;
 
             IsLoading = false;
+            if (fader != null)
+                StartCoroutine(fader.FadeIn(FadeInTime));
             Debug.Log($"[ECHO] Loaded scene '{sceneName}'.");
             SceneLoaded?.Invoke(sceneName);
         }
