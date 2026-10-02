@@ -24,27 +24,35 @@ See `Packages/manifest.json` for the exact list and versions.
 
 ## Art
 
-| Asset | Source | License | Author / credit | Used in |
-|-------|--------|---------|-----------------|---------|
-| _(none yet: all visuals so far are created in-project)_ | | | | |
+All third-party art is copied in by `Tools/import_assets.py`, which also applies ECHO's
+recolors (listed per row) so the changes are reproducible. Each pack folder keeps the author's
+original license file as `LICENSE.txt`.
+
+| Asset | Source | License | Author / credit | ECHO changes | Used in |
+|-------|--------|---------|-----------------|--------------|---------|
+| **Warped City**: player animations (idle, run, jump, back-jump, crouch, hurt), drone and turret enemies, enemy explosion, shot hit, lab props cut from the tileset (`Assets/ThirdParty/Ansimuz/WarpedCity/`) | https://opengameart.org/content/warped-city | CC0 / public domain ("free to use on whatever you want, personal or commercial") | Luis Zuno (@ansimuz). Credit not required; planned for the Credits screen | Player jacket yellow/orange → white/cool grey, red accent → cyan (yellow reads as danger in ECHO). Enemy cyan eyes → danger red. Prop screens green → energy cyan; `LabDoor_Exit` keeps its green. **The pack's music (by Pascal Belisle) is not used: it requires credit and is not CC0.** | Player, enemies, lab props |
+| **Sideview Sci-Fi - Patreon Collection**: cyberpunk corridor segments and city backdrop, cryo pod, computers, terminals, server cabinets, elevator, machinery background and tileset, bulkhead walls (`Assets/ThirdParty/Ansimuz/SideviewSciFi/`) | https://opengameart.org/content/sideview-sci-fi-patreon-collection | CC0 ("free to use in whatever you want, credit is not required") | Luis Zuno (@ansimuz) | Corridor pieces cut from the sheet. Amber screens → energy cyan; corridor EXIT sign magenta → exit green | Level 1 lab backdrop and props; Security and Core pieces reserved for levels 2–3 |
+| **Particle Pack** 1.1: 13 textures (sparks, stars, lights, smoke, trace, twirl) (`Assets/ThirdParty/Kenney/Particles/`) | https://kenney.nl/assets/particle-pack | CC0 | Kenney (www.kenney.nl) | Downscaled to 64/128 px | Glow halos and flashes |
 
 ## Audio
 
-| Asset | Source | License | Author / credit | Used in |
-|-------|--------|---------|-----------------|---------|
-| _(none yet)_ | | | | |
+| Asset | Source | License | Author / credit | ECHO changes | Used in |
+|-------|--------|---------|-----------------|--------------|---------|
+| 35 sound effects from **Sci-Fi Sounds**, **Impact Sounds**, **Interface Sounds** and **Digital Audio** (`Assets/ThirdParty/Kenney/Audio/`) | https://kenney.nl/assets (packs: sci-fi-sounds, impact-sounds, interface-sounds, digital-audio) | CC0 | Kenney (www.kenney.nl) | None (original .ogg files) | All sound effects and ambience beds (`Assets/Settings/Audio/AudioLibrary.asset`) |
+| **Dark Sci-Fi Audio Pack**: sector, airy, pulse, urgent, transmission, title, victory (`Assets/ThirdParty/SRG774/DarkSciFiAudio/`) | https://opengameart.org/content/dark-sci-fi-audio-pack | CC0 1.0 | SRG774 | Re-encoded to Ogg Vorbis q3; `title.ogg` trimmed to 96 s with fades | Menu, level, boss and ending music; level-complete sting |
 
 ## Fonts
 
 | Font | Source | License | Used in |
 |------|--------|---------|---------|
-| _(none yet)_ | | | |
+| Kenney Future, Kenney Future Narrow (`Assets/ThirdParty/Kenney/Fonts/`) | https://kenney.nl/assets/kenney-fonts | CC0 (Kenney) | UI (planned for the UI pass) |
 
 ## VFX / Shaders
 
 | Asset | Source | License | Used in |
 |-------|--------|---------|---------|
-| _(none yet)_ | | | |
+| `Echo/Additive` shader (`Assets/Art/Shaders/EchoAdditive.shader`) | Written for ECHO | Original work | Dash trail, afterimages, sparks, glows |
+| Particle effect prefabs (`Assets/Prefabs/VFX/`) | Built in code by `EchoArtFactory` (this project) | Original work, using the textures listed above | Every effect in `VfxLibrary` |
 
 ## Generated assets
 
@@ -55,3 +63,4 @@ usage terms that allow commercial distribution.
 |-------|------|------|-------|---------|
 | Placeholder shapes: Square, RoundedRect, Circle, Diamond, DiamondOutline (`Assets/Art/Sprites/Generated/`) | Drawn in code by `EchoSpriteFactory` (this project) | 2026-10-01 | Original work, no third-party content | Graybox levels, player, energy pickups, HUD pips |
 | Touch control icons: TouchRing, IconArrow, IconJump, IconDash, IconPause (`Assets/Art/UI/Touch/`) | Drawn in code by `EchoSpriteFactory` (this project) | 2026-10-01 | Original work, no third-party content | On-screen touch buttons, main menu placeholder |
+| ECHO pixel art: lab block and platform tiles, depth shade, hazard stripes, pit glow, energy cells, energy barrier and exit fields, barrier emitter, pixel/ring particle textures (`Assets/Art/Pixel/`) | Drawn in code by `Tools/make_echo_art.py` (this project), colors sampled from the Ansimuz lab palette | 2026-10-01 | Original work, no third-party content | Level 1 look, pickups, barriers, VFX |

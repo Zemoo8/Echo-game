@@ -61,8 +61,9 @@ namespace Echo.EditorTools
 
             EchoSpriteFactory.EnsureAll();
             EchoPrefabFactory.EnsurePlayerTuning();
-            EchoPrefabFactory.EnsurePlayerPrefab();
             EchoPrefabFactory.EnsureSystemsPrefab();
+            EchoArtFactory.EnsureAll();
+            EchoPrefabFactory.EnsurePlayerPrefab();
             EchoSceneFactory.EnsureAll();
             SetupBuildScenes();
 

@@ -406,6 +406,9 @@ GameObject:
   - component: {fileID: 893005203479028264}
   - component: {fileID: 8104339984474678036}
   - component: {fileID: 5903079126596532999}
+  - component: {fileID: 8008544329739257574}
+  - component: {fileID: 853375859894763194}
+  - component: {fileID: 8288031292348026108}
   m_Layer: 0
   m_Name: Systems
   m_TagString: Untagged
@@ -477,6 +480,44 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3977542092747f04899e919257a7f04d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Echo.Core.DevOverlay
+--- !u!114 &8008544329739257574
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3698587037271821121}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ecd95aa4081066f45bd51a5640695f1c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Echo::Echo.Visuals.VfxManager
+  library: {fileID: 11400000, guid: 020290d3668e80647978ade8e62608b5, type: 2}
+--- !u!114 &853375859894763194
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3698587037271821121}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 054b0083931973143bbed73d5ae6b358, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Echo::Echo.Audio.AudioManager
+  library: {fileID: 11400000, guid: ebcf50f246e512141a67ca4051446487, type: 2}
+--- !u!114 &8288031292348026108
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3698587037271821121}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6dc1b978085938418c9be1d0dda1c41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Echo::Echo.Visuals.WorldFeedback
 --- !u!1 &3720164288806161156
 GameObject:
   m_ObjectHideFlags: 0

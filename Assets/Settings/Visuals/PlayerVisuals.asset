@@ -1,0 +1,77 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e22bdac7698a7fd4ebe0d4a3933732cd, type: 3}
+  m_Name: PlayerVisuals
+  m_EditorClassIdentifier: Echo::Echo.Visuals.PlayerVisuals
+  idle:
+    frames:
+    - {fileID: 21300000, guid: bbdc9c3222ddba44e9314d1df46cd7b7, type: 3}
+    - {fileID: 21300000, guid: 6f805f5fa29d4f34d8627ffa40d082fb, type: 3}
+    - {fileID: 21300000, guid: e3c4124001ce3c948b98be25316525e1, type: 3}
+    - {fileID: 21300000, guid: d9717ea7619716946aa28b5c77fad84c, type: 3}
+    framesPerSecond: 6
+    loop: 1
+  run:
+    frames:
+    - {fileID: 21300000, guid: b53d47dd430e3484da90374fdca543ee, type: 3}
+    - {fileID: 21300000, guid: c516f6f0c14d23e4ab7272c1ed42b1bf, type: 3}
+    - {fileID: 21300000, guid: 2f5c47a6af860eb4da10e5da39bb5e6d, type: 3}
+    - {fileID: 21300000, guid: f124f84057a75ae4c83e107d31bdbea5, type: 3}
+    - {fileID: 21300000, guid: 1ae3a6bbe0038ee4f963d97c3731443e, type: 3}
+    - {fileID: 21300000, guid: dc4f34a52b8cbe94ea56298c46852087, type: 3}
+    - {fileID: 21300000, guid: 1edca43533dbc9c4daaa2048fae9b894, type: 3}
+    - {fileID: 21300000, guid: b3a42a9e6bb093644b2a77ad5c282866, type: 3}
+    framesPerSecond: 14
+    loop: 1
+  rise:
+    frames:
+    - {fileID: 21300000, guid: 1ae3a6bbe0038ee4f963d97c3731443e, type: 3}
+    framesPerSecond: 10
+    loop: 0
+  apexFlip:
+    frames:
+    - {fileID: 21300000, guid: 135e5639d1fc50b43aec5df5bb2ea916, type: 3}
+    - {fileID: 21300000, guid: 7c252a3647e5d984cb79464927b365b0, type: 3}
+    - {fileID: 21300000, guid: 41c4fdc62aefb1f47bb569519db6f465, type: 3}
+    framesPerSecond: 14
+    loop: 0
+  fall:
+    frames:
+    - {fileID: 21300000, guid: 5574500ca94d7fd4f82a70d584728c84, type: 3}
+    framesPerSecond: 10
+    loop: 0
+  land:
+    frames:
+    - {fileID: 21300000, guid: af99598771e5f3445ae18d26f1fe6f33, type: 3}
+    framesPerSecond: 10
+    loop: 0
+  dash:
+    frames:
+    - {fileID: 21300000, guid: c516f6f0c14d23e4ab7272c1ed42b1bf, type: 3}
+    framesPerSecond: 10
+    loop: 0
+  hurt:
+    frames:
+    - {fileID: 21300000, guid: 95fc439649a354d4aaf5905e0654bc22, type: 3}
+    framesPerSecond: 10
+    loop: 0
+  victory:
+    frames:
+    - {fileID: 21300000, guid: af99598771e5f3445ae18d26f1fe6f33, type: 3}
+    - {fileID: 21300000, guid: 1c02aef4163689842ba295311ddb70c7, type: 3}
+    - {fileID: 21300000, guid: 3c1706f218f903e468e1cef5f88a72b9, type: 3}
+    - {fileID: 21300000, guid: 675e14ec98213b24db31b935a7b358d6, type: 3}
+    - {fileID: 21300000, guid: fad91c00dcb8c594e9488f8da7baf1e3, type: 3}
+    - {fileID: 21300000, guid: e5f41a3531abbd544b7dd564d19ebdac, type: 3}
+    - {fileID: 21300000, guid: 0ba808eb2284ac14bbd31b320b86c2c2, type: 3}
+    framesPerSecond: 12
+    loop: 0

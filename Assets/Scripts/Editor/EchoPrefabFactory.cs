@@ -3,6 +3,7 @@ using Echo.DevTools;
 using Echo.Platform;
 using Echo.Player;
 using Echo.UI;
+using Echo.Visuals;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -21,7 +22,8 @@ namespace Echo.EditorTools
 
         static readonly Vector2 PlayerColliderSize = new Vector2(0.7f, 1.3f);
         const float PlayerColliderEdgeRadius = 0.05f;
-        static readonly Vector2 PlayerVisualSize = new Vector2(0.8f, 1.4f);
+        // Distance from the player's centre down to the bottom of the collider (the feet).
+        static float FeetOffset => PlayerColliderSize.y * 0.5f + PlayerColliderEdgeRadius;
 
         public static PlayerTuning EnsurePlayerTuning()
         {
@@ -56,8 +58,9 @@ namespace Echo.EditorTools
 
         public static GameObject EnsurePlayerPrefab(bool rebuild = false)
         {
+            // The graybox player (no PlayerAnimator) is upgraded to the animated one automatically.
             var existing = AssetDatabase.LoadAssetAtPath<GameObject>(PlayerPrefabPath);
-            if (existing != null && !rebuild)
+            if (existing != null && !rebuild && existing.GetComponentInChildren<PlayerAnimator>(true) != null)
                 return existing;
 
             EchoProjectSetup.EnsureFolderPath("Assets/Prefabs/Player");
@@ -80,22 +83,55 @@ namespace Echo.EditorTools
             root.AddComponent<PlayerMovement>().Tuning = EnsurePlayerTuning();
             root.AddComponent<PlayerDash>();
             var controller = root.AddComponent<PlayerController>();
+            root.AddComponent<PlayerFeedback>();
 
-            // Graybox look: bright body with a cyan visor that shows the facing direction.
+            // Visual: flipped by the controller to face the movement direction.
+            //   Squash: scales around the feet (PlayerAnimator) > Body: the animated sprite.
+            //   DashTrail: cyan energy trail while dashing (DashEffects also spawns afterimages).
             var visual = new GameObject("Visual");
             visual.transform.SetParent(root.transform, false);
-            var bodySprite = AddSprite(visual, EchoSpriteFactory.RoundedRect, EchoPalette.PlayerBody, "Player", 0);
-            bodySprite.drawMode = SpriteDrawMode.Sliced;
-            bodySprite.size = PlayerVisualSize;
-
-            var visor = new GameObject("Visor");
-            visor.transform.SetParent(visual.transform, false);
-            visor.transform.localPosition = new Vector3(0.14f, 0.32f, 0f);
-            var visorSprite = AddSprite(visor, EchoSpriteFactory.RoundedRect, EchoPalette.Energy, "Player", 1);
-            visorSprite.drawMode = SpriteDrawMode.Sliced;
-            visorSprite.size = new Vector2(0.44f, 0.2f);
-
             SetReference(controller, "visual", visual.transform);
+
+            var squash = new GameObject("Squash");
+            squash.transform.SetParent(visual.transform, false);
+            squash.transform.localPosition = new Vector3(0f, -FeetOffset, 0f);
+
+            var playerVisuals = EchoArtFactory.EnsurePlayerVisuals();
+            var bodyObject = new GameObject("Body");
+            bodyObject.transform.SetParent(squash.transform, false);
+            var bodyRenderer = bodyObject.AddComponent<SpriteRenderer>();
+            bodyRenderer.sprite = playerVisuals.idle.frames[0];
+            bodyRenderer.sortingLayerName = "Player";
+
+            var animator = squash.AddComponent<PlayerAnimator>();
+            SetReference(animator, "visuals", playerVisuals);
+            SetReference(animator, "body", bodyRenderer);
+
+            var glow = EchoArtFactory.GlowMaterial;
+            var trailObject = new GameObject("DashTrail");
+            trailObject.transform.SetParent(visual.transform, false);
+            trailObject.transform.localPosition = new Vector3(0f, 0.05f, 0f);
+            var trail = trailObject.AddComponent<TrailRenderer>();
+            trail.sharedMaterial = glow;
+            trail.time = 0.16f;
+            trail.minVertexDistance = 0.08f;
+            trail.widthCurve = AnimationCurve.Linear(0f, 0.85f, 1f, 0f);
+            trail.colorGradient = Fade(new Color(0.21f, 0.89f, 1f), 0.55f);
+            trail.emitting = false;
+            trail.sortingLayerName = "Player";
+            trail.sortingOrder = -2;
+            trail.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            trail.receiveShadows = false;
+
+            var effects = visual.AddComponent<DashEffects>();
+            SetReference(effects, "body", bodyRenderer);
+            SetReference(effects, "trail", trail);
+            SetReference(effects, "ghostMaterial", glow);
+
+            // A soft personal light keeps the hero readable in the darkest corners.
+            var lightObject = new GameObject("Glow");
+            lightObject.transform.SetParent(root.transform, false);
+            EchoLevelArt.AddPointLight(lightObject, new Color(0.75f, 0.92f, 1f), 0.4f, 2.6f);
 
             var prefab = PrefabUtility.SaveAsPrefabAsset(root, PlayerPrefabPath);
             Object.DestroyImmediate(root);
@@ -212,6 +248,15 @@ namespace Echo.EditorTools
             iconImage.sprite = EchoSpriteFactory.Load(iconPath);
             iconImage.color = EchoPalette.PlayerBody;
             iconImage.raycastTarget = false;
+        }
+
+        static Gradient Fade(Color color, float alpha)
+        {
+            var gradient = new Gradient();
+            gradient.SetKeys(
+                new[] { new GradientColorKey(color, 0f), new GradientColorKey(color, 1f) },
+                new[] { new GradientAlphaKey(alpha, 0f), new GradientAlphaKey(0f, 1f) });
+            return gradient;
         }
 
         static RectTransform CreateRect(string name, Transform parent)

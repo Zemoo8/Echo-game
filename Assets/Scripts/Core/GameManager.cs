@@ -1,5 +1,6 @@
 using System;
 using Echo.Platform;
+using Echo.Presentation;
 using UnityEngine;
 
 namespace Echo.Core
@@ -21,6 +22,10 @@ namespace Echo.Core
     /// </summary>
     public class GameManager : MonoBehaviour
     {
+        const float HitStopTimeScale = 0.05f;
+
+        float hitStopUntil;
+
         public static GameManager Instance { get; private set; }
 
         public GameState State { get; private set; } = GameState.Boot;
@@ -50,6 +55,12 @@ namespace Echo.Core
 
         void Update()
         {
+            if (hitStopUntil > 0f && Time.unscaledTime >= hitStopUntil)
+            {
+                hitStopUntil = 0f;
+                ApplyTimeScale();
+            }
+
             if (!GameInput.Pause.WasPressedThisFrame())
                 return;
 
@@ -82,6 +93,19 @@ namespace Echo.Core
                 SetState(GameState.Playing);
         }
 
+        /// <summary>
+        /// Freezes the action for a split second to sell an impact (barrier break, boss hit).
+        /// Only during play, and only when the CameraFeedback presentation feature is on.
+        /// </summary>
+        public void HitStop(float seconds)
+        {
+            if (State != GameState.Playing || !PresentationMode.IsEnabled(Feature.CameraFeedback))
+                return;
+
+            hitStopUntil = Mathf.Max(hitStopUntil, Time.unscaledTime + seconds);
+            ApplyTimeScale();
+        }
+
         // GamePix sets Time.timeScale to 0 itself while an ad or the portal pauses the game,
         // then restores the value it saw. Never write the time scale during that pause, and
         // re-apply ours once it ends so a pause/resume made in between is respected.
@@ -90,7 +114,10 @@ namespace Echo.Core
             if (GamePixManager.IsPlatformPaused)
                 return;
 
-            Time.timeScale = IsPaused ? 0f : 1f;
+            if (IsPaused)
+                Time.timeScale = 0f;
+            else
+                Time.timeScale = hitStopUntil > 0f ? HitStopTimeScale : 1f;
         }
 
         void OnPlatformPauseChanged(bool paused)

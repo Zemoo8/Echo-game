@@ -1,0 +1,4 @@
+Dark Sci-Fi Audio Pack by SRG774
+https://opengameart.org/content/dark-sci-fi-audio-pack
+License: CC0 1.0 Universal (public domain dedication).
+ECHO changes: re-encoded to Ogg Vorbis q3; title.ogg trimmed to 96 s with fades.

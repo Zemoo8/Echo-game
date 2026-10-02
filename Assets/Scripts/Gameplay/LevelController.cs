@@ -82,7 +82,7 @@ namespace Echo.Gameplay
                 return;
 
             busy = true;
-            player.InputEnabled = false;
+            player.Celebrate();
             if (GameManager.Instance != null)
                 GameManager.Instance.SetState(GameState.LevelComplete);
 

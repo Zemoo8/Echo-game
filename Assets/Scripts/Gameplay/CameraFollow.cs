@@ -1,4 +1,5 @@
 using Echo.Player;
+using Echo.Visuals;
 using UnityEngine;
 
 namespace Echo.Gameplay
@@ -28,10 +29,12 @@ namespace Echo.Gameplay
         float currentLookAhead;
         float lookAheadVelocity;
         Vector2 followVelocity;
+        Vector2 followPosition;
 
         void Awake()
         {
             cam = GetComponent<Camera>();
+            followPosition = transform.position;
             if (target != null)
                 targetMovement = target.GetComponent<PlayerMovement>();
         }
@@ -53,8 +56,8 @@ namespace Echo.Gameplay
             lookAheadVelocity = 0f;
             followVelocity = Vector2.zero;
 
-            Vector2 goal = Goal();
-            transform.position = Clamp(new Vector3(goal.x, goal.y, transform.position.z));
+            followPosition = Clamp(Goal());
+            transform.position = new Vector3(followPosition.x, followPosition.y, transform.position.z);
         }
 
         void LateUpdate()
@@ -65,17 +68,20 @@ namespace Echo.Gameplay
             currentLookAhead = Mathf.SmoothDamp(currentLookAhead, Facing() * lookAhead, ref lookAheadVelocity, lookAheadSmoothTime);
 
             Vector2 goal = Goal();
-            Vector3 position = transform.position;
-            position.x = Mathf.SmoothDamp(position.x, goal.x, ref followVelocity.x, horizontalSmoothTime);
-            position.y = Mathf.SmoothDamp(position.y, goal.y, ref followVelocity.y, verticalSmoothTime);
-            transform.position = Clamp(position);
+            followPosition.x = Mathf.SmoothDamp(followPosition.x, goal.x, ref followVelocity.x, horizontalSmoothTime);
+            followPosition.y = Mathf.SmoothDamp(followPosition.y, goal.y, ref followVelocity.y, verticalSmoothTime);
+            followPosition = Clamp(followPosition);
+
+            // Shake rides on top of the smoothed position so it never disturbs the follow itself.
+            Vector2 shaken = followPosition + CameraFeedback.Offset;
+            transform.position = new Vector3(shaken.x, shaken.y, transform.position.z);
         }
 
         int Facing() => targetMovement != null ? targetMovement.Facing : 1;
 
         Vector2 Goal() => (Vector2)target.position + offset + new Vector2(currentLookAhead, 0f);
 
-        Vector3 Clamp(Vector3 position)
+        Vector2 Clamp(Vector2 position)
         {
             if (!clampToBounds || cam == null)
                 return position;

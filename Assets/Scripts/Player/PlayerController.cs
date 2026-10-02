@@ -34,6 +34,10 @@ namespace Echo.Player
         /// <summary>Turned off while dead, during level completion and cutscenes.</summary>
         public bool InputEnabled { get; set; } = true;
 
+        public event Action Died;
+        public event Action Respawned;
+        public event Action Celebrated;
+
         void Awake()
         {
             Movement = GetComponent<PlayerMovement>();
@@ -105,6 +109,7 @@ namespace Echo.Player
             body.simulated = false;
             if (visual != null)
                 visual.gameObject.SetActive(false);
+            Died?.Invoke();
         }
 
         public void Respawn(Vector2 position)
@@ -115,6 +120,14 @@ namespace Echo.Player
             if (visual != null)
                 visual.gameObject.SetActive(true);
             IsAlive = true;
+            Respawned?.Invoke();
+        }
+
+        /// <summary>Victory pose when the level is completed.</summary>
+        public void Celebrate()
+        {
+            InputEnabled = false;
+            Celebrated?.Invoke();
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
