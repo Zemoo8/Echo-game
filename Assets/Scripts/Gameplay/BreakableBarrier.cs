@@ -8,7 +8,7 @@ namespace Echo.Gameplay
     /// A solid barrier that only a dash can break. Every level's exit door is one of these
     /// with <see cref="IsLevelExit"/> set, which is why the player must keep a charge in reserve.
     /// </summary>
-    public class BreakableBarrier : MonoBehaviour, IDashTarget
+    public class BreakableBarrier : MonoBehaviour, IDashTarget, IRestorable
     {
         [Tooltip("Breaking this barrier completes the level.")]
         [SerializeField] bool isLevelExit;
@@ -19,6 +19,7 @@ namespace Echo.Gameplay
         Collider2D[] colliders;
 
         public bool IsBroken { get; private set; }
+        public bool IsSpent => IsBroken;
         public bool IsLevelExit => isLevelExit;
 
         /// <summary>Raised for every barrier broken (audio, VFX and camera shake hook in here).</summary>

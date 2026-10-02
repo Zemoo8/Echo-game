@@ -34,11 +34,21 @@ namespace Echo.EditorTools
             new Vector2(106f, 2.5f), new Vector2(128f, 2.5f), new Vector2(150f, 2.5f),
         };
 
+        // Level 2: drone, turret hall, shutter console, lasers and their console, exit turret.
+        static readonly Vector2[] Level2Shots =
+        {
+            new Vector2(18f, 2.5f), new Vector2(38f, 2.5f), new Vector2(68f, 2.5f), new Vector2(100f, 2.5f),
+            new Vector2(132f, 2.5f),
+        };
+
         [MenuItem("ECHO/Tools/Capture Sandbox Screenshots")]
         public static void CaptureSandbox() => CaptureWorld(EchoSceneFactory.SandboxPath, SandboxShots, "sandbox_");
 
         [MenuItem("ECHO/Tools/Capture Level 1 Screenshots")]
         public static void CaptureLevel1() => CaptureWorld(EchoLevelFactory.Level1Path, Level1Shots, "level1_");
+
+        [MenuItem("ECHO/Tools/Capture Level 2 Screenshots")]
+        public static void CaptureLevel2() => CaptureWorld(EchoLevelFactory.Level2Path, Level2Shots, "level2_");
 
         static void CaptureWorld(string scenePath, Vector2[] shots, string prefix)
         {

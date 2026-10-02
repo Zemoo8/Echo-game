@@ -15,6 +15,9 @@ namespace Echo.Gameplay
         Lasers,
         KeepCharge,
         OutOfEnergy,
+        Drones,
+        Turrets,
+        Consoles,
     }
 
     /// <summary>

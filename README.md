@@ -32,7 +32,7 @@ that only a dash can break, so the player always has to keep one charge in reser
 - **First open / after pulling:** `ECHO > Setup > Run Project Setup` re-applies settings and creates
   any missing generated assets. It never overwrites hand-edited scenes.
 - **Feel tuning:** edit `Assets/Settings/Gameplay/PlayerTuning.asset` in the Inspector, even while playing.
-- **Levels:** `Assets/Scenes/Levels/` (built by `ECHO > Setup > Rebuild Level 1`); the movement test chamber is `Assets/Scenes/Dev/Sandbox_Movement.unity`.
+- **Levels:** `Assets/Scenes/Levels/` (built by `ECHO > Setup > Rebuild Level 1` / `Rebuild Level 2`); the movement test chamber is `Assets/Scenes/Dev/Sandbox_Movement.unity`.
 - **Tests:** Window > General > Test Runner, or headless:
   `Unity -batchmode -projectPath . -runTests -testPlatform PlayMode -testResults results.xml`
 - **GamePix build:** `ECHO > Build > GamePix Package` (output in `html5/`, which is not committed).

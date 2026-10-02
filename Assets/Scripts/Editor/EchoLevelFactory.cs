@@ -19,6 +19,7 @@ namespace Echo.EditorTools
     public static class EchoLevelFactory
     {
         public static string Level1Path => $"{ScenesFolder}/Levels/{SceneNames.Level1}.unity";
+        public static string Level2Path => $"{ScenesFolder}/Levels/{SceneNames.Level2}.unity";
 
         const float WallTop = 14f;
         const float Bottom = -4f;
@@ -33,7 +34,20 @@ namespace Echo.EditorTools
             EchoProjectSetup.SetupBuildScenes();
         }
 
-        public static void EnsureAll() => EnsureScene(Level1Path, BuildLevel1, false);
+        [MenuItem("ECHO/Setup/Rebuild Level 2")]
+        public static void RebuildLevel2()
+        {
+            if (!Application.isBatchMode && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+                return;
+            EnsureScene(Level2Path, BuildLevel2, true);
+            EchoProjectSetup.SetupBuildScenes();
+        }
+
+        public static void EnsureAll()
+        {
+            EnsureScene(Level1Path, BuildLevel1, false);
+            EnsureScene(Level2Path, BuildLevel2, false);
+        }
 
         // Level 1 · Awakening (abandoned lab). Floor tops: 0 unless noted. Left to right:
         //   wake by the cryo pod (move) · stairs up (jump; the last stair is 6 deep so a full jump
@@ -132,10 +146,114 @@ namespace Echo.EditorTools
             foreach (float x in new[] { 3f, 12f, 20f, 50f, 68f, 79f, 89f, 99f, 117f, 125f, 140f, 148f, 159f })
                 EchoLevelArt.CeilingLamp(lights, x, 4.6f, x == 68f || x == 125f, lab.lampColor);
 
-            // --- player, camera, level -------------------------------------------------------
+            Finish(level, camera, new Vector2(2.5f, 1f), new Rect(-4f, Bottom, 167f, 16f),
+                   "SECTOR 01", "ABANDONED LAB", 0, 3, SceneNames.Level2);
+        }
+
+        // Level 2 · Security Wing. Floor tops 0 unless noted. Left to right:
+        //   a patrolling drone (jump it or dash it) · cell · checkpoint · a turret behind a low
+        //   cover wall · 8-unit pit · cell · a console on a ledge that opens the shutter beyond it ·
+        //   a second drone · checkpoint · a console on a floating platform that switches off the
+        //   three lasers ahead (or time them) · checkpoint · cell · 8-unit pit · a cover wall (so
+        //   the exit turret's bolts never cross the pit) · a turret guarding the exit door. Start with 1 energy, max 3. The route needs 3 dashes (two pits, the
+        //   exit) and offers 3 cells, so there is one charge to spare: spend it on a machine, or keep it.
+        static void BuildLevel2()
+        {
+            var kit = EchoArtFactory.LoadKit(Biome.Security);
+            var camera = CreateCamera(kit.voidColor);
+            DisableCameraRoll(camera.gameObject.AddComponent<CameraFeedback>());
+            EchoLevelArt.DustMotes(camera.transform);
+            EchoLevelArt.CreateGlobalLight(kit.ambientIntensity, kit.ambientColor);
+            var sceneAudio = new GameObject("SceneAudio").AddComponent<SceneAudio>();
+            SetEnum(sceneAudio, "music", (int)MusicId.Security);
+
+            var level = new GameObject("Level");
+            var geometry = Child("Geometry", level.transform);
+            var pickups = Child("Pickups", level.transform);
+            var barriers = Child("Barriers", level.transform);
+            var hazards = Child("Hazards", level.transform);
+            var machines = Child("Machines", level.transform);
+            var devices = Child("Consoles", level.transform);
+            var checkpoints = Child("Checkpoints", level.transform);
+            var hints = Child("Hints", level.transform);
+            var backdrop = Child("Backdrop", level.transform);
+            var props = Child("Props", level.transform);
+            var lights = Child("Lights", level.transform);
+
+            // --- ground ----------------------------------------------------------------------
+            // The turret stands 8 units before the first pit so jumping it lands on the floor,
+            // with room to run up to the pit.
+            KitBlock(geometry, kit, "Wall_Left", -4f, Bottom, -3f, WallTop);
+            KitGround(geometry, kit, "Floor_Entry", -3f, 46f, 0f);
+            KitBlock(geometry, kit, "Cover", 31f, 0f, 32f, 1.6f);
+            KitGround(geometry, kit, "Floor_Shutter", 54f, 120f, 0f);          // pit 46..54
+            KitBlock(geometry, kit, "Console_Ledge", 62f, 0f, 68f, 2f);
+            KitBlock(geometry, kit, "Doorway_Shutter", 71f, CeilingY, 73f, WallTop);
+            KitBlock(geometry, kit, "Step", 90f, 0f, 92f, 1.2f);
+            Platform(geometry, "Console_Platform", 92f, 98f, 2.6f);
+            KitBlock(geometry, kit, "Doorway_Laser_1", 101.4f, CeilingY, 102.6f, WallTop);
+            KitBlock(geometry, kit, "Doorway_Laser_2", 105.4f, CeilingY, 106.6f, WallTop);
+            KitBlock(geometry, kit, "Doorway_Laser_3", 109.4f, CeilingY, 110.6f, WallTop);
+            KitGround(geometry, kit, "Floor_Exit", 128f, 148f, 0f);            // pit 120..128
+            KitBlock(geometry, kit, "Cover_Exit", 130f, 0f, 131f, 1.6f);       // stops the exit turret's bolts before the pit
+            KitBlock(geometry, kit, "Doorway_Exit", 139f, CeilingY, 145f, WallTop);
+            KitBlock(geometry, kit, "Wall_Right", 148f, Bottom, 149f, WallTop);
+
+            EchoLevelArt.Pit(level.transform, 46f, 54f, 0f, Bottom);
+            EchoLevelArt.Pit(level.transform, 120f, 128f, 0f, Bottom);
+            KillZone(level.transform, 74f, -9f, 180f);
+
+            // --- the run ---------------------------------------------------------------------
+            Pickup(pickups, 27f, 1f);
+            Pickup(pickups, 57f, 1f);
+            Pickup(pickups, 117f, 1f);
+            Barrier("ExitDoor", barriers, 141.7f, 142.3f, true);
+
+            DroneOn(machines, 14f, 24f, 1.4f, 2.5f, 0f);
+            DroneOn(machines, 76f, 86f, 1.4f, 3f, 0.5f);
+            TurretOn(machines, 38f, 0f, -1, 2f, 0f);
+            TurretOn(machines, 136f, 0f, -1, 1.6f, 0.5f);
+
+            var shutter = Shutter(hazards, 72f, 0f, CeilingY);
+            var laser1 = Laser(hazards, 102f, 0f, CeilingY, 1.2f, 1f, 0f);
+            var laser2 = Laser(hazards, 106f, 0f, CeilingY, 1.2f, 1f, 0.4f);
+            var laser3 = Laser(hazards, 110f, 0f, CeilingY, 1.2f, 1f, 0.8f);
+            ConsoleAt(devices, 65f, 2f, shutter);
+            ConsoleAt(devices, 96.5f, 2.6f, laser1, laser2, laser3);
+
+            Checkpoint(checkpoints, 29f, 0f);
+            Checkpoint(checkpoints, 88.5f, 0f);
+            Checkpoint(checkpoints, 114f, 0f);
+
+            Hint(hints, HintId.Drones, 5f, 13f, 0f);
+            Hint(hints, HintId.Turrets, 28f, 31f, 0f);
+            Hint(hints, HintId.Consoles, 58f, 62f, 0f);
+            Hint(hints, HintId.Lasers, 98.5f, 101.4f, 0f);
+            Hint(hints, HintId.KeepCharge, 114f, 120f, 0f);
+            Hint(hints, HintId.OutOfEnergy, 114f, 120f, 0f, onlyWhenEmpty: true);
+            Hint(hints, HintId.OutOfEnergy, 128f, 141.5f, 0f, onlyWhenEmpty: true);
+
+            // --- dressing --------------------------------------------------------------------
+            EchoLevelArt.SecurityHall(kit, backdrop, -4f, 149f, -0.25f);
+            EchoLevelArt.Prop(props, Path(kit.props[0]), 9f, 0f);    // a sealed door
+            EchoLevelArt.Prop(props, Path(kit.props[1]), 20f, 0f);
+            EchoLevelArt.Prop(props, Path(kit.props[2]), 42f, 0f);
+            EchoLevelArt.Prop(props, Path(kit.props[3]), 81f, 0f);
+            EchoLevelArt.Prop(props, Path(kit.props[1]), 115.5f, 0f);
+            EchoLevelArt.Prop(props, Path(kit.props[0]), 131f, 0f);
+            foreach (float x in new[] { 4f, 18f, 33f, 59f, 78f, 94f, 115f, 132f, 146f })
+                EchoLevelArt.CeilingLamp(lights, x, 4.6f, x == 78f || x == 132f, kit.lampColor);
+
+            Finish(level, camera, new Vector2(2f, 1f), new Rect(-4f, Bottom, 153f, 16f),
+                   "SECTOR 02", "SECURITY WING", 1, 3, SceneNames.Level3);
+        }
+
+        static void Finish(GameObject level, Camera camera, Vector2 spawnAt, Rect bounds,
+                           string sector, string title, int startingEnergy, int maxEnergy, string nextScene)
+        {
             var spawn = new GameObject("SpawnPoint");
             spawn.transform.SetParent(level.transform, false);
-            spawn.transform.position = new Vector3(2.5f, 1f, 0f);
+            spawn.transform.position = spawnAt;
 
             var player = (GameObject)PrefabUtility.InstantiatePrefab(EchoPrefabFactory.EnsurePlayerPrefab());
             player.transform.position = spawn.transform.position;
@@ -143,7 +261,7 @@ namespace Echo.EditorTools
             var follow = camera.gameObject.AddComponent<CameraFollow>();
             EchoPrefabFactory.SetReference(follow, "target", player.transform);
             var followSettings = new SerializedObject(follow);
-            followSettings.FindProperty("bounds").rectValue = new Rect(-4f, Bottom, 167f, 16f);
+            followSettings.FindProperty("bounds").rectValue = bounds;
             followSettings.ApplyModifiedPropertiesWithoutUndo();
 
             var controller = level.AddComponent<LevelController>();
@@ -151,14 +269,186 @@ namespace Echo.EditorTools
             EchoPrefabFactory.SetReference(controller, "spawnPoint", spawn.transform);
             EchoPrefabFactory.SetReference(controller, "cameraFollow", follow);
             var settings = new SerializedObject(controller);
-            settings.FindProperty("sectorLabel").stringValue = "SECTOR 01";
-            settings.FindProperty("levelTitle").stringValue = "ABANDONED LAB";
-            settings.FindProperty("startingEnergy").intValue = 0;
-            settings.FindProperty("maxEnergy").intValue = 3;
-            settings.FindProperty("nextScene").stringValue = SceneNames.Level2;
+            settings.FindProperty("sectorLabel").stringValue = sector;
+            settings.FindProperty("levelTitle").stringValue = title;
+            settings.FindProperty("startingEnergy").intValue = startingEnergy;
+            settings.FindProperty("maxEnergy").intValue = maxEnergy;
+            settings.FindProperty("nextScene").stringValue = nextScene;
             settings.FindProperty("saveProgress").boolValue = true;
             settings.ApplyModifiedPropertiesWithoutUndo();
         }
+
+        // --- kit-dressed ground ------------------------------------------------------------------
+
+        static void KitBlock(Transform parent, EnvironmentKit kit, string name, float xMin, float yMin, float xMax, float yMax)
+        {
+            var go = new GameObject(name) { layer = LayerMask.NameToLayer(Layers.Ground) };
+            go.transform.SetParent(parent, false);
+            go.transform.position = new Vector3((xMin + xMax) * 0.5f, (yMin + yMax) * 0.5f, 0f);
+            var size = new Vector2(xMax - xMin, yMax - yMin);
+            EchoLevelArt.DressBlock(go, size, kit);
+            go.AddComponent<BoxCollider2D>().size = size;
+        }
+
+        static void KitGround(Transform parent, EnvironmentKit kit, string name, float xMin, float xMax, float top)
+        {
+            KitBlock(parent, kit, name, xMin, Bottom, xMax, top);
+            EchoLevelArt.DepthShade(parent, xMin, xMax, top - 0.6f);
+        }
+
+        /// <summary>A thin steel girder the player can stand on and walk under.</summary>
+        static void Platform(Transform parent, string name, float xMin, float xMax, float top)
+        {
+            const float thickness = 0.5f;
+            var go = new GameObject(name) { layer = LayerMask.NameToLayer(Layers.Ground) };
+            go.transform.SetParent(parent, false);
+            go.transform.position = new Vector3((xMin + xMax) * 0.5f, top - thickness * 0.5f, 0f);
+            var renderer = go.AddComponent<SpriteRenderer>();
+            renderer.sprite = EchoArtFactory.LoadSprite("Assets/Art/Pixel/Security/SecurityPlatform.png");
+            renderer.drawMode = SpriteDrawMode.Tiled;
+            renderer.size = new Vector2(xMax - xMin, thickness);
+            renderer.sortingLayerName = "Level";
+            go.AddComponent<BoxCollider2D>().size = new Vector2(xMax - xMin, thickness);
+        }
+
+        // --- machines and devices ----------------------------------------------------------------
+
+        static void DroneOn(Transform parent, float xA, float xB, float y, float speed, float phase)
+        {
+            var go = new GameObject("Drone") { layer = LayerMask.NameToLayer(Layers.Enemy) };
+            go.transform.SetParent(parent, false);
+            go.transform.position = new Vector3(xA, y, 0f);
+            var rigidbody = go.AddComponent<Rigidbody2D>();
+            rigidbody.bodyType = RigidbodyType2D.Kinematic;
+            rigidbody.useFullKinematicContacts = true;
+            rigidbody.interpolation = RigidbodyInterpolation2D.Interpolate;
+            var trigger = go.AddComponent<CircleCollider2D>();
+            trigger.isTrigger = true;
+            trigger.radius = 0.45f;
+
+            var frames = NumberedFromOne("Assets/ThirdParty/Ansimuz/WarpedCity/Enemies/drone/drone_{0:00}.png", 4);
+            var body = new GameObject("Body");
+            body.transform.SetParent(go.transform, false);
+            var renderer = body.AddComponent<SpriteRenderer>();
+            renderer.sprite = frames[0];
+            renderer.sortingLayerName = "Characters";
+            Frames(body.AddComponent<SpriteFlipbook>(), frames, 10f);
+            EchoLevelArt.AddPointLight(body, new Color(1f, 0.3f, 0.25f), 0.5f, 1.4f);
+
+            var drone = go.AddComponent<Drone>();
+            EchoPrefabFactory.SetReference(drone, "body", body);
+            EchoPrefabFactory.SetReference(drone, "sprite", renderer);
+            var settings = new SerializedObject(drone);
+            settings.FindProperty("pointA").vector2Value = new Vector2(xA, y);
+            settings.FindProperty("pointB").vector2Value = new Vector2(xB, y);
+            settings.FindProperty("speed").floatValue = speed;
+            settings.FindProperty("phase").floatValue = phase;
+            settings.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        static void TurretOn(Transform parent, float x, float floorY, int facing, float interval, float offset)
+        {
+            var frames = NumberedFromOne("Assets/ThirdParty/Ansimuz/WarpedCity/Enemies/turret/turret_{0:00}.png", 6);
+            float half = frames[0].bounds.size.y * 0.5f;
+            var go = new GameObject("Turret") { layer = LayerMask.NameToLayer(Layers.Enemy) };
+            go.transform.SetParent(parent, false);
+            go.transform.position = new Vector3(x, floorY + half, 0f);
+            var trigger = go.AddComponent<BoxCollider2D>();
+            trigger.isTrigger = true;
+            trigger.size = new Vector2(0.7f, half * 2f);
+
+            var body = new GameObject("Body");
+            body.transform.SetParent(go.transform, false);
+            var renderer = body.AddComponent<SpriteRenderer>();
+            renderer.sprite = frames[0];
+            renderer.sortingLayerName = "Characters";
+            EchoLevelArt.AddPointLight(body, new Color(1f, 0.45f, 0.2f), 0.4f, 1.2f);
+
+            var turret = go.AddComponent<Turret>();
+            EchoPrefabFactory.SetReference(turret, "body", body);
+            EchoPrefabFactory.SetReference(turret, "sprite", renderer);
+            EchoPrefabFactory.SetReference(turret, "boltSprite", EchoArtFactory.LoadSprite("Assets/Art/Pixel/Gameplay/TurretBolt.png"));
+            var settings = new SerializedObject(turret);
+            settings.FindProperty("facing").intValue = facing;
+            settings.FindProperty("interval").floatValue = interval;
+            settings.FindProperty("offset").floatValue = offset;
+            settings.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>A security shutter from the floor to the ceiling, opened by a console.</summary>
+        static SecurityDoor Shutter(Transform parent, float x, float floorY, float ceilingY)
+        {
+            float height = ceilingY - floorY;
+            var go = new GameObject("SecurityDoor") { layer = LayerMask.NameToLayer(Layers.Ground) };
+            go.transform.SetParent(parent, false);
+            go.transform.position = new Vector3(x, floorY, 0f);
+            var blocker = go.AddComponent<BoxCollider2D>();
+            blocker.size = new Vector2(0.8f, height);
+            blocker.offset = new Vector2(0f, height * 0.5f);
+
+            var slats = new GameObject("Shutter");
+            slats.transform.SetParent(go.transform, false);
+            slats.transform.localPosition = new Vector3(0f, height * 0.5f, 0f);
+            var renderer = slats.AddComponent<SpriteRenderer>();
+            renderer.sprite = EchoArtFactory.LoadSprite("Assets/Art/Pixel/Gameplay/Shutter.png");
+            renderer.drawMode = SpriteDrawMode.Tiled;
+            renderer.size = new Vector2(0.75f, height);
+            renderer.sortingLayerName = "Interactables";
+
+            var door = go.AddComponent<SecurityDoor>();
+            EchoPrefabFactory.SetReference(door, "shutter", renderer);
+            return door;
+        }
+
+        static void ConsoleAt(Transform parent, float x, float floorY, params MonoBehaviour[] targets)
+        {
+            var go = new GameObject("Console");
+            go.transform.SetParent(parent, false);
+            go.transform.position = new Vector3(x, floorY, 0f);
+            Trigger(go, new Vector2(1f, 2f), new Vector2(0f, 1f));
+
+            var locked = EchoArtFactory.LoadSprite("Assets/Art/Pixel/Gameplay/Console_Locked.png");
+            var screen = new GameObject("Screen");
+            screen.transform.SetParent(go.transform, false);
+            screen.transform.localPosition = new Vector3(0f, locked.bounds.size.y * 0.5f, 0f);
+            var renderer = screen.AddComponent<SpriteRenderer>();
+            renderer.sprite = locked;
+            renderer.sortingLayerName = "Interactables";
+            var light = EchoLevelArt.AddPointLight(screen, new Color(1f, 0.3f, 0.25f), 0.7f, 1.8f);
+
+            var console = go.AddComponent<ControlConsole>();
+            EchoPrefabFactory.SetReference(console, "screen", renderer);
+            EchoPrefabFactory.SetReference(console, "lockedSprite", locked);
+            EchoPrefabFactory.SetReference(console, "usedSprite", EchoArtFactory.LoadSprite("Assets/Art/Pixel/Gameplay/Console_Open.png"));
+            EchoPrefabFactory.SetReference(console, "screenLight", light);
+            var settings = new SerializedObject(console);
+            var array = settings.FindProperty("targets");
+            array.arraySize = targets.Length;
+            for (int i = 0; i < targets.Length; i++)
+                array.GetArrayElementAtIndex(i).objectReferenceValue = targets[i];
+            settings.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        static Sprite[] NumberedFromOne(string format, int count)
+        {
+            var frames = new Sprite[count];
+            for (int i = 0; i < count; i++)
+                frames[i] = EchoArtFactory.LoadSprite(string.Format(format, i + 1));
+            return frames;
+        }
+
+        static void Frames(SpriteFlipbook flipbook, Sprite[] frames, float fps)
+        {
+            var settings = new SerializedObject(flipbook);
+            var array = settings.FindProperty("frames");
+            array.arraySize = frames.Length;
+            for (int i = 0; i < frames.Length; i++)
+                array.GetArrayElementAtIndex(i).objectReferenceValue = frames[i];
+            settings.FindProperty("framesPerSecond").floatValue = fps;
+            settings.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        static string Path(Sprite sprite) => AssetDatabase.GetAssetPath(sprite);
 
         // --- building blocks ---------------------------------------------------------------------
 
@@ -224,7 +514,7 @@ namespace Echo.EditorTools
             EchoPrefabFactory.SetReference(checkpoint, "respawnPoint", respawn.transform);
         }
 
-        static void Laser(Transform parent, float x, float floorY, float ceilingY, float onTime, float offTime, float offset)
+        static LaserGate Laser(Transform parent, float x, float floorY, float ceilingY, float onTime, float offTime, float offset)
         {
             float height = ceilingY - floorY;
             var go = new GameObject("Laser") { layer = LayerMask.NameToLayer(Layers.Hazard) };
@@ -274,6 +564,7 @@ namespace Echo.EditorTools
             gateSettings.FindProperty("offTime").floatValue = offTime;
             gateSettings.FindProperty("offset").floatValue = offset;
             gateSettings.ApplyModifiedPropertiesWithoutUndo();
+            return gate;
         }
 
         static void Hint(Transform parent, HintId hint, float xMin, float xMax, float floorY, bool onlyWhenEmpty = false)

@@ -9,11 +9,12 @@ namespace Echo.Gameplay
     /// energy is full, so energy can't be wasted and the player can come back for it later.
     /// </summary>
     [RequireComponent(typeof(Collider2D))]
-    public class EnergyPickup : MonoBehaviour
+    public class EnergyPickup : MonoBehaviour, IRestorable
     {
         [SerializeField, Min(1)] int amount = 1;
 
         public bool IsCollected { get; private set; }
+        public bool IsSpent => IsCollected;
 
         /// <summary>Raised for every pickup collected (audio and VFX hook in here).</summary>
         public static event Action<EnergyPickup> AnyCollected;
@@ -46,6 +47,8 @@ namespace Echo.Gameplay
             IsCollected = false;
             gameObject.SetActive(true);
         }
+
+        public void Restore() => ResetPickup();
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void ResetStatics() => AnyCollected = null;

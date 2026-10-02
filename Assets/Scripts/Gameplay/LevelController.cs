@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Linq;
 using Echo.Core;
 using Echo.Platform;
 using Echo.Player;
@@ -45,15 +46,13 @@ namespace Echo.Gameplay
         [Tooltip("After this long the player can skip the rest with jump, dash or a tap.")]
         [SerializeField, Min(0f)] float completeSkipAfter = 1f;
 
-        EnergyPickup[] pickups;
-        BreakableBarrier[] barriers;
+        IRestorable[] restorables;
         bool busy;
 
         // The run as it was when the last checkpoint was reached.
         Checkpoint checkpoint;
         int checkpointEnergy;
-        bool[] pickupsTakenAtCheckpoint;
-        bool[] barriersBrokenAtCheckpoint;
+        bool[] spentAtCheckpoint;
 
         public static LevelController Current { get; private set; }
 
@@ -89,8 +88,8 @@ namespace Echo.Gameplay
         void Start()
         {
             player.Dash.DashStarted += OnDashStarted;
-            pickups = FindObjectsByType<EnergyPickup>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            barriers = FindObjectsByType<BreakableBarrier>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            restorables = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+                .OfType<IRestorable>().ToArray();
             ResetToStart();
 
             if (saveProgress && PresentationMode.IsEnabled(Feature.SaveSystem))
@@ -194,41 +193,32 @@ namespace Echo.Gameplay
         void ResetToStart()
         {
             player.Energy.Initialize(startingEnergy, maxEnergy);
-            foreach (var pickup in pickups)
-                pickup.ResetPickup();
-            foreach (var barrier in barriers)
-                barrier.Restore();
+            foreach (var restorable in restorables)
+                restorable.Restore();
 
             player.Respawn(spawnPoint.position);
             if (cameraFollow != null)
                 cameraFollow.SnapToTarget();
         }
 
-        /// <summary>Remembers the run at this checkpoint: energy, pickups taken, barriers broken.</summary>
+        /// <summary>
+        /// Remembers the run at this checkpoint: the energy, and which cells, barriers, machines and
+        /// consoles were already used up.
+        /// </summary>
         public void ReachCheckpoint(Checkpoint reached)
         {
             checkpoint = reached;
             checkpointEnergy = player.Energy.Current;
-            pickupsTakenAtCheckpoint = new bool[pickups.Length];
-            for (int i = 0; i < pickups.Length; i++)
-                pickupsTakenAtCheckpoint[i] = pickups[i].IsCollected;
-            barriersBrokenAtCheckpoint = new bool[barriers.Length];
-            for (int i = 0; i < barriers.Length; i++)
-                barriersBrokenAtCheckpoint[i] = barriers[i].IsBroken;
+            spentAtCheckpoint = restorables.Select(r => r.IsSpent).ToArray();
         }
 
         void RestoreCheckpoint()
         {
             player.Energy.Initialize(checkpointEnergy, maxEnergy);
-            for (int i = 0; i < pickups.Length; i++)
+            for (int i = 0; i < restorables.Length; i++)
             {
-                if (!pickupsTakenAtCheckpoint[i])
-                    pickups[i].ResetPickup();
-            }
-            for (int i = 0; i < barriers.Length; i++)
-            {
-                if (!barriersBrokenAtCheckpoint[i])
-                    barriers[i].Restore();
+                if (!spentAtCheckpoint[i])
+                    restorables[i].Restore();
             }
 
             player.Respawn(checkpoint.RespawnPosition);

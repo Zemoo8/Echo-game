@@ -209,8 +209,8 @@ namespace Echo.EditorTools
         // the player needs (the touch buttons sit in the corners).
         static void BuildHints(RectTransform canvas)
         {
-            var panel = NewPanel("Hints", canvas, new Vector2(600f, 44f));
-            Place(panel, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 26f), new Vector2(600f, 44f));
+            var panel = NewPanel("Hints", canvas, new Vector2(680f, 44f));
+            Place(panel, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 26f), new Vector2(680f, 44f));
             var group = panel.gameObject.AddComponent<CanvasGroup>();
             group.alpha = 0f;
             group.blocksRaycasts = false;

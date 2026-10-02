@@ -16,7 +16,7 @@ namespace Echo.EditorTools
         static readonly Vector2 PlayerPivot = new Vector2(38.5f / 71f, 0f);
 
         // Bump when a rule changes so Unity reimports the affected files.
-        public override uint GetVersion() => 4;
+        public override uint GetVersion() => 5;
 
         void OnPreprocessTexture()
         {
@@ -61,7 +61,7 @@ namespace Echo.EditorTools
             // (LabBlock, SecurityBlock, CoreBlock: one ground tile per biome.)
             if (path.StartsWith("Assets/Art/Pixel/") && path.EndsWith("Block.png"))
                 settings.spriteBorder = new Vector4(16, 16, 16, 16);
-            else if (path.EndsWith("/LabPlatform.png"))
+            else if (path.StartsWith("Assets/Art/Pixel/") && path.EndsWith("Platform.png"))
                 settings.spriteBorder = new Vector4(16, 0, 16, 0);
             // UI frames are drawn Sliced: fixed corners, stretched edges and fill.
             else if (path.EndsWith("/UI/Panel.png"))

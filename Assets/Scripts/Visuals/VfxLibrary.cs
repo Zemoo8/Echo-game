@@ -17,6 +17,7 @@ namespace Echo.Visuals
         PlayerDeath,
         PlayerRespawn,
         Victory,
+        MachineExplosion,
     }
 
     /// <summary>Maps each <see cref="VfxId"/> to a particle prefab. Swap entries to re-skin effects.</summary>

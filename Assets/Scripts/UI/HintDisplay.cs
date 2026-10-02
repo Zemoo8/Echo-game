@@ -147,6 +147,12 @@ namespace Echo.UI
                     return "Red means danger. Wait for a laser to switch off, then go.";
                 case HintId.KeepCharge:
                     return "The exit only opens to a dash. Keep one charge for it.";
+                case HintId.Drones:
+                    return "Drones patrol. Jump over one, or dash through it (that costs a charge).";
+                case HintId.Turrets:
+                    return "Turrets fire on a rhythm. Jump the shots, or dash into one to destroy it.";
+                case HintId.Consoles:
+                    return "Walk into a console to use it. Green means it worked.";
                 case HintId.OutOfEnergy:
                     return Pick("No charge left. Press R to go back to the last checkpoint.",
                                 "No charge left. Press Select to go back to the last checkpoint.",

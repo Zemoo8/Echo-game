@@ -49,7 +49,7 @@ namespace Echo.EditorTools
 
         /// <summary>
         /// Builds the art data and rebuilds everything that shows it: the player prefab, the
-        /// persistent UI, the main menu, the movement sandbox, the design showcase and Level 1.
+        /// persistent UI, the main menu, the movement sandbox, the design showcase and the levels.
         /// Headless: -batchmode -quit -executeMethod Echo.EditorTools.EchoArtFactory.ApplyVisualOverhaul
         /// </summary>
         [MenuItem("ECHO/Setup/Apply Visual Overhaul")]
@@ -66,6 +66,7 @@ namespace Echo.EditorTools
             EchoSceneFactory.RebuildSandbox();
             EchoShowcaseFactory.Rebuild();
             EchoLevelFactory.RebuildLevel1();
+            EchoLevelFactory.RebuildLevel2();
             AssetDatabase.SaveAssets();
             Debug.Log("[ECHO Art] Visual overhaul applied.");
         }
@@ -332,6 +333,17 @@ namespace Echo.EditorTools
                         .Colors(Alpha(energy, 0.6f), Alpha(energy, 0.6f)).Fade();
                 }, pixel),
 
+                Effect(VfxId.MachineExplosion, root =>
+                {
+                    // Machines burst in danger colors: hot sparks and a warm ring.
+                    root.Burst(30).Life(0.35f, 0.7f).Speed(3f, 9f).Size(0.0625f, 0.19f).Colors(danger, new Color(1f, 0.85f, 0.6f))
+                        .Arc(0.3f, 360f).Gravity(1.4f).Drag(1.5f).Shrink();
+                    new EchoFx("Ring", root.Transform, ring).Burst(1).Life(0.3f, 0.3f).Size(3f, 3f)
+                        .Colors(Alpha(danger, 0.9f), Alpha(danger, 0.9f)).Grow(0.1f).Fade();
+                    new EchoFx("Flash", root.Transform, soft).Burst(1).Life(0.18f, 0.18f).Size(3.5f, 3.5f)
+                        .Colors(Alpha(danger, 0.8f), Alpha(danger, 0.8f)).Fade();
+                }, pixel),
+
                 Effect(VfxId.Victory, root =>
                 {
                     root.Burst(30).Life(0.8f, 1.2f).Speed(3f, 7f).Size(0.0625f, 0.156f).Colors(exit, energyLight)
@@ -390,6 +402,10 @@ namespace Echo.EditorTools
                 Sound(SfxId.PauseClose, 0.5f, 0f, 0f, "close_002"),
                 Sound(SfxId.Checkpoint, 0.55f, 0f, 0f, "zapThreeToneUp"),
                 Sound(SfxId.LaserOn, 0.3f, 0.08f, 0.05f, "laserSmall_000"),
+                Sound(SfxId.MachineDestroyed, 0.7f, 0.06f, 0f, "explosionCrunch_002"),
+                Sound(SfxId.TurretShot, 0.35f, 0.08f, 0.05f, "laserLarge_000"),
+                Sound(SfxId.ConsoleUsed, 0.55f, 0f, 0f, "switch_005"),
+                Sound(SfxId.DoorOpen, 0.6f, 0f, 0f, "doorOpen_001"),
             };
 
             library.tracks = new[]

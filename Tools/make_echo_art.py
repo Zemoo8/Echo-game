@@ -505,6 +505,80 @@ def laser_parts():
         save(img, "Gameplay", f"LaserBeam_{frame:02d}.png")
 
 
+# --- security wing objects (Level 2) -----------------------------------------------------------
+
+STEEL_DARK = hexc("14181A")
+STEEL = hexc("343D44")
+STEEL_LIGHT = hexc("64859C")
+STEEL_EDGE = hexc("8FB3CC")
+
+
+def turret_bolt():
+    """8x4 turret shot: a hot red slug with a white core (danger is always warm)."""
+    img = Image.new("RGBA", (8, 4), CLEAR)
+    px = img.load()
+    for x in range(8):
+        for y in range(4):
+            if (x in (0, 7)) and y in (0, 3):
+                continue
+            px[x, y] = LASER_EDGE if x == 0 else LASER if y in (0, 3) or x < 3 else LASER_CORE
+    save(img, "Gameplay", "TurretBolt.png")
+
+
+def console():
+    """16x24 wall console that opens doors and switches lasers off: red screen while locked,
+    green (the way-out color) once used."""
+    for name, screen, glow in (("Console_Locked", DANGER, hexc("8A1A22")), ("Console_Open", EXIT, hexc("1E7A48"))):
+        img = Image.new("RGBA", (16, 24), CLEAR)
+        px = img.load()
+        for y in range(24):
+            for x in range(16):
+                edge = x in (0, 15) or y in (0, 23)
+                px[x, y] = STEEL_DARK if edge else STEEL_LIGHT if y == 1 else STEEL
+        for y in range(4, 12):
+            for x in range(3, 13):
+                px[x, y] = glow if x in (3, 12) or y in (4, 11) else screen
+        for x in (5, 8, 11):  # keys
+            for y in (15, 16):
+                px[x, y] = STEEL_EDGE
+        for x in range(2, 14):
+            px[x, 20], px[x, 21] = STEEL_LIGHT, STEEL_DARK
+        save(img, "Gameplay", f"{name}.png")
+
+
+def shutter():
+    """16x16 security shutter tile (tiled up the door): steel slats with a red lock stripe."""
+    img = Image.new("RGBA", (16, 16), STEEL)
+    px = img.load()
+    for y in range(16):
+        for x in range(16):
+            if y % 4 == 0:
+                px[x, y] = STEEL_LIGHT
+            elif y % 4 == 3:
+                px[x, y] = STEEL_DARK
+        px[0, y], px[15, y] = STEEL_DARK, STEEL_DARK
+    for y in range(6, 10):
+        px[7, y], px[8, y] = LASER, LASER_CORE if y in (7, 8) else LASER
+    save(img, "Gameplay", "Shutter.png")
+
+
+def security_platform():
+    """48x16 steel girder platform, sliced with 16 px side borders (like the lab catwalk)."""
+    img = Image.new("RGBA", (48, 16), CLEAR)
+    px = img.load()
+    for x in range(48):
+        px[x, 0], px[x, 1], px[x, 2] = STEEL_EDGE, STEEL_LIGHT, STEEL
+        for y in range(3, 10):
+            px[x, y] = STEEL_DARK if (x + y) % 4 else STEEL
+        px[x, 10] = hexc("0E1113")
+        if x % 8 in (0, 1):
+            for y in range(11, 14):
+                px[x, y] = STEEL_DARK
+    for y in range(0, 11):
+        px[0, y], px[47, y] = hexc("07090A"), hexc("07090A")
+    save(img, "Security", "SecurityPlatform.png")
+
+
 if __name__ == "__main__":
     lab_block()
     lab_platform()
@@ -530,4 +604,8 @@ if __name__ == "__main__":
     scanner_lamp()
     checkpoint_beacon()
     laser_parts()
+    turret_bolt()
+    console()
+    shutter()
+    security_platform()
     print("Wrote ECHO pixel art to", os.path.abspath(OUT))

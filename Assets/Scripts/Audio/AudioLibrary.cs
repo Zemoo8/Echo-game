@@ -24,6 +24,10 @@ namespace Echo.Audio
         PauseClose,
         Checkpoint,
         LaserOn,
+        MachineDestroyed,
+        TurretShot,
+        ConsoleUsed,
+        DoorOpen,
     }
 
     /// <summary>Music tracks and ambience beds, by name.</summary>

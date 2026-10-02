@@ -10,10 +10,11 @@ namespace Echo.Gameplay
     /// A red laser between two emitters that kills on touch while it's on. It switches on and
     /// off on a fixed rhythm, and flickers faintly just before it comes back on, so the player
     /// can read the timing. Runs on game time: pausing freezes it.
-    /// With the Hazards feature off (presentation) the beam stays off.
+    /// With the Hazards feature off (presentation) the beam stays off; a console can also switch
+    /// it off for good.
     /// </summary>
     [RequireComponent(typeof(Collider2D))]
-    public class LaserGate : MonoBehaviour
+    public class LaserGate : MonoBehaviour, ISwitchable
     {
         const float WarningTime = 0.4f;
 
@@ -28,8 +29,12 @@ namespace Echo.Gameplay
 
         float beamLightIntensity;
         bool wasOn;
+        bool switchedOff;
 
         public bool IsOn { get; private set; }
+
+        /// <summary>True once a console has switched this gate off.</summary>
+        public bool IsSwitchedOff => switchedOff;
 
         void Reset() => GetComponent<Collider2D>().isTrigger = true;
 
@@ -43,7 +48,7 @@ namespace Echo.Gameplay
         {
             float cycle = onTime + offTime;
             float clock = Mathf.Repeat(Time.time + offset, cycle);
-            bool hazards = PresentationMode.IsEnabled(Feature.Hazards);
+            bool hazards = PresentationMode.IsEnabled(Feature.Hazards) && !switchedOff;
             IsOn = hazards && (alwaysOn || clock < onTime);
             bool warning = hazards && !IsOn && clock > cycle - WarningTime;
 
@@ -61,6 +66,9 @@ namespace Echo.Gameplay
             if (beamLight != null)
                 beamLight.intensity = IsOn ? beamLightIntensity : warning ? beamLightIntensity * 0.3f : 0f;
         }
+
+        /// <summary>A console switching the gate off (or back on after a checkpoint reload).</summary>
+        public void SetSwitched(bool switched) => switchedOff = switched;
 
         void OnTriggerStay2D(Collider2D other)
         {

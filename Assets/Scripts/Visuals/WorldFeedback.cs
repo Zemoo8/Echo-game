@@ -20,6 +20,9 @@ namespace Echo.Visuals
             EnergyPickup.AnyCollected += OnEnergyCollected;
             BreakableBarrier.AnyBroken += OnBarrierBroken;
             Checkpoint.AnyActivated += OnCheckpoint;
+            Machine.AnyDestroyed += OnMachineDestroyed;
+            ControlConsole.AnyUsed += OnConsoleUsed;
+            SecurityDoor.AnyOpened += OnDoorOpened;
         }
 
         void OnDisable()
@@ -27,7 +30,22 @@ namespace Echo.Visuals
             EnergyPickup.AnyCollected -= OnEnergyCollected;
             BreakableBarrier.AnyBroken -= OnBarrierBroken;
             Checkpoint.AnyActivated -= OnCheckpoint;
+            Machine.AnyDestroyed -= OnMachineDestroyed;
+            ControlConsole.AnyUsed -= OnConsoleUsed;
+            SecurityDoor.AnyOpened -= OnDoorOpened;
         }
+
+        static void OnMachineDestroyed(Machine machine)
+        {
+            AudioManager.Play(SfxId.MachineDestroyed);
+            VfxManager.Play(VfxId.MachineExplosion, machine.transform.position);
+            CameraFeedback.Shake(0.4f);
+            HitStop(BarrierHitStop);
+        }
+
+        static void OnConsoleUsed(ControlConsole console) => AudioManager.Play(SfxId.ConsoleUsed);
+
+        static void OnDoorOpened(SecurityDoor door) => AudioManager.Play(SfxId.DoorOpen);
 
         static void OnCheckpoint(Checkpoint checkpoint)
         {
