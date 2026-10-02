@@ -3,6 +3,7 @@ using System.Collections;
 using Echo.Core;
 using Echo.Platform;
 using Echo.Player;
+using Echo.Presentation;
 using Echo.UI;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -11,8 +12,9 @@ using UnityEngine.SceneManagement;
 namespace Echo.Gameplay
 {
     /// <summary>
-    /// Runs one level: sets the player's starting energy, spawns and respawns the player,
-    /// keeps the run's stats, and moves on once the exit door is broken. One per gameplay scene.
+    /// Runs one level: sets the player's starting energy, spawns the player, brings them back
+    /// at the last checkpoint after a death (or R), keeps the run's stats, saves progress and
+    /// moves on once the exit door is broken. One per gameplay scene.
     /// </summary>
     public class LevelController : MonoBehaviour
     {
@@ -33,8 +35,10 @@ namespace Echo.Gameplay
         [SerializeField, Min(1)] int maxEnergy = 5;
 
         [Header("Flow")]
-        [Tooltip("Scene loaded after the exit door breaks. Empty = replay this level.")]
+        [Tooltip("Scene loaded after the exit door breaks. Empty = replay this level. If the scene isn't in the build yet, the main menu loads instead.")]
         [SerializeField] string nextScene;
+        [Tooltip("Story levels remember themselves for Continue; test scenes don't.")]
+        [SerializeField] bool saveProgress;
         [SerializeField, Min(0f)] float respawnDelay = 0.6f;
         [Tooltip("The level-complete card stays up this long, then the next scene loads.")]
         [SerializeField, Min(0f)] float completeDelay = 3.5f;
@@ -42,7 +46,14 @@ namespace Echo.Gameplay
         [SerializeField, Min(0f)] float completeSkipAfter = 1f;
 
         EnergyPickup[] pickups;
+        BreakableBarrier[] barriers;
         bool busy;
+
+        // The run as it was when the last checkpoint was reached.
+        Checkpoint checkpoint;
+        int checkpointEnergy;
+        bool[] pickupsTakenAtCheckpoint;
+        bool[] barriersBrokenAtCheckpoint;
 
         public static LevelController Current { get; private set; }
 
@@ -50,6 +61,7 @@ namespace Echo.Gameplay
         public static event Action<LevelController> Started;
 
         public PlayerController Player => player;
+        public Checkpoint LastCheckpoint => checkpoint;
         public string SectorLabel => sectorLabel;
         public string LevelTitle => levelTitle;
 
@@ -78,8 +90,11 @@ namespace Echo.Gameplay
         {
             player.Dash.DashStarted += OnDashStarted;
             pickups = FindObjectsByType<EnergyPickup>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            barriers = FindObjectsByType<BreakableBarrier>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             ResetToStart();
 
+            if (saveProgress && PresentationMode.IsEnabled(Feature.SaveSystem))
+                SaveData.SetContinue(SceneManager.GetActiveScene().name);
             if (GameManager.Instance != null)
                 GameManager.Instance.SetState(GameState.Playing);
             Debug.Log($"[ECHO] Level '{levelTitle}' started.");
@@ -92,8 +107,9 @@ namespace Echo.Gameplay
                 return;
 
             ElapsedTime += Time.deltaTime;
+            // R / Select: back to the last checkpoint (or the start), e.g. when out of energy.
             if (GameInput.Restart.WasPressedThisFrame())
-                RestartLevel();
+                KillPlayer();
         }
 
         void OnDashStarted(int direction) => DashesUsed++;
@@ -142,8 +158,10 @@ namespace Echo.Gameplay
             if (fader != null)
                 yield return fader.FadeOut(fadeOut);
 
-            // Until checkpoints exist, dying restarts the run from the level start.
-            ResetToStart();
+            if (checkpoint != null)
+                RestoreCheckpoint();
+            else
+                ResetToStart();
             if (fader != null)
                 StartCoroutine(fader.FadeIn(RespawnFadeIn));
             busy = false;
@@ -163,6 +181,10 @@ namespace Echo.Gameplay
             CompleteProgress = 1f;
 
             string target = string.IsNullOrEmpty(nextScene) ? SceneManager.GetActiveScene().name : nextScene;
+            if (!SceneLoader.IsInBuild(target))
+                target = SceneNames.MainMenu; // the next level isn't built yet
+            if (saveProgress && PresentationMode.IsEnabled(Feature.SaveSystem) && target != SceneNames.MainMenu)
+                SaveData.SetContinue(target);
             if (SceneLoader.Instance != null)
                 SceneLoader.Instance.Load(target);
             else
@@ -174,8 +196,42 @@ namespace Echo.Gameplay
             player.Energy.Initialize(startingEnergy, maxEnergy);
             foreach (var pickup in pickups)
                 pickup.ResetPickup();
+            foreach (var barrier in barriers)
+                barrier.Restore();
 
             player.Respawn(spawnPoint.position);
+            if (cameraFollow != null)
+                cameraFollow.SnapToTarget();
+        }
+
+        /// <summary>Remembers the run at this checkpoint: energy, pickups taken, barriers broken.</summary>
+        public void ReachCheckpoint(Checkpoint reached)
+        {
+            checkpoint = reached;
+            checkpointEnergy = player.Energy.Current;
+            pickupsTakenAtCheckpoint = new bool[pickups.Length];
+            for (int i = 0; i < pickups.Length; i++)
+                pickupsTakenAtCheckpoint[i] = pickups[i].IsCollected;
+            barriersBrokenAtCheckpoint = new bool[barriers.Length];
+            for (int i = 0; i < barriers.Length; i++)
+                barriersBrokenAtCheckpoint[i] = barriers[i].IsBroken;
+        }
+
+        void RestoreCheckpoint()
+        {
+            player.Energy.Initialize(checkpointEnergy, maxEnergy);
+            for (int i = 0; i < pickups.Length; i++)
+            {
+                if (!pickupsTakenAtCheckpoint[i])
+                    pickups[i].ResetPickup();
+            }
+            for (int i = 0; i < barriers.Length; i++)
+            {
+                if (!barriersBrokenAtCheckpoint[i])
+                    barriers[i].Restore();
+            }
+
+            player.Respawn(checkpoint.RespawnPosition);
             if (cameraFollow != null)
                 cameraFollow.SnapToTarget();
         }

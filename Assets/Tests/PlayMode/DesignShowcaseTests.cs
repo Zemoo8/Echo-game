@@ -12,7 +12,11 @@ namespace Echo.Tests
     public class DesignShowcaseTests
     {
         [SetUp]
-        public void SetUp() => PresentationMode.Override(ScriptableObject.CreateInstance<PresentationConfig>()); // Everything
+        public void SetUp()
+        {
+            PresentationMode.Override(ScriptableObject.CreateInstance<PresentationConfig>()); // Everything
+            AudioListener.volume = 0f; // the scenes play music and effects; keep test runs silent
+        }
 
         [UnityTearDown]
         public IEnumerator TearDown()
@@ -28,6 +32,7 @@ namespace Echo.Tests
             if (GameManager.Instance != null)
                 GameManager.Instance.SetState(GameState.Boot);
             PresentationMode.Override(null);
+            AudioListener.volume = 1f;
         }
 
         [UnityTest]

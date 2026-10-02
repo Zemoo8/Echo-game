@@ -43,6 +43,19 @@ namespace Echo.Gameplay
                 LevelController.Current.CompleteLevel();
         }
 
+        /// <summary>Closes the barrier again (respawning at a checkpoint reached before it broke).</summary>
+        public void Restore()
+        {
+            if (!IsBroken)
+                return;
+
+            IsBroken = false;
+            foreach (var barrierCollider in colliders)
+                barrierCollider.enabled = true;
+            if (intactVisual != null)
+                intactVisual.SetActive(true);
+        }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void ResetStatics() => AnyBroken = null;
     }

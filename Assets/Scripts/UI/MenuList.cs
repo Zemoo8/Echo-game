@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -7,32 +8,41 @@ namespace Echo.UI
     /// <summary>
     /// A vertical list of menu entries: up and down wrap around, the first entry is selected
     /// when the list appears, and the selection comes back if a click on empty space clears it
-    /// (so the keyboard and gamepad never lose their place).
+    /// (so the keyboard and gamepad never lose their place). Hidden entries are skipped; call
+    /// <see cref="Refresh"/> after showing or hiding one.
     /// </summary>
     public class MenuList : MonoBehaviour
     {
         [SerializeField] MenuButton[] items = System.Array.Empty<MenuButton>();
 
+        readonly List<MenuButton> visible = new List<MenuButton>();
         MenuButton remembered;
 
-        void Awake()
+        void OnEnable() => Refresh();
+
+        /// <summary>Re-links navigation over the visible entries and selects the first one.</summary>
+        public void Refresh()
         {
-            for (int i = 0; i < items.Length; i++)
+            visible.Clear();
+            foreach (var item in items)
             {
-                items[i].Button.navigation = new Navigation
+                if (item.gameObject.activeSelf)
+                    visible.Add(item);
+            }
+
+            for (int i = 0; i < visible.Count; i++)
+            {
+                visible[i].Button.navigation = new Navigation
                 {
                     mode = Navigation.Mode.Explicit,
-                    selectOnUp = items[(i - 1 + items.Length) % items.Length].Button,
-                    selectOnDown = items[(i + 1) % items.Length].Button,
+                    selectOnUp = visible[(i - 1 + visible.Count) % visible.Count].Button,
+                    selectOnDown = visible[(i + 1) % visible.Count].Button,
                 };
             }
-        }
 
-        void OnEnable()
-        {
             remembered = null;
-            if (items.Length > 0)
-                items[0].SelectSilently();
+            if (visible.Count > 0)
+                visible[0].SelectSilently();
         }
 
         void Update()
@@ -42,7 +52,7 @@ namespace Echo.UI
                 return;
 
             var selectedObject = system.currentSelectedGameObject;
-            foreach (var item in items)
+            foreach (var item in visible)
             {
                 if (selectedObject == item.gameObject)
                 {
@@ -53,7 +63,7 @@ namespace Echo.UI
 
             if (selectedObject == null || !selectedObject.activeInHierarchy)
             {
-                var fallback = remembered != null ? remembered : items.Length > 0 ? items[0] : null;
+                var fallback = remembered != null ? remembered : visible.Count > 0 ? visible[0] : null;
                 if (fallback != null)
                     fallback.SelectSilently();
             }

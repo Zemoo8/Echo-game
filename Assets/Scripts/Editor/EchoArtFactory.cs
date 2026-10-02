@@ -49,7 +49,7 @@ namespace Echo.EditorTools
 
         /// <summary>
         /// Builds the art data and rebuilds everything that shows it: the player prefab, the
-        /// persistent UI, the main menu, the movement sandbox and the design showcase.
+        /// persistent UI, the main menu, the movement sandbox, the design showcase and Level 1.
         /// Headless: -batchmode -quit -executeMethod Echo.EditorTools.EchoArtFactory.ApplyVisualOverhaul
         /// </summary>
         [MenuItem("ECHO/Setup/Apply Visual Overhaul")]
@@ -65,6 +65,7 @@ namespace Echo.EditorTools
             EchoSceneFactory.RebuildMainMenu();
             EchoSceneFactory.RebuildSandbox();
             EchoShowcaseFactory.Rebuild();
+            EchoLevelFactory.RebuildLevel1();
             AssetDatabase.SaveAssets();
             Debug.Log("[ECHO Art] Visual overhaul applied.");
         }
@@ -387,6 +388,8 @@ namespace Echo.EditorTools
                 Sound(SfxId.UiBack, 0.5f, 0f, 0f, "back_002"),
                 Sound(SfxId.PauseOpen, 0.5f, 0f, 0f, "open_002"),
                 Sound(SfxId.PauseClose, 0.5f, 0f, 0f, "close_002"),
+                Sound(SfxId.Checkpoint, 0.55f, 0f, 0f, "zapThreeToneUp"),
+                Sound(SfxId.LaserOn, 0.3f, 0.08f, 0.05f, "laserSmall_000"),
             };
 
             library.tracks = new[]

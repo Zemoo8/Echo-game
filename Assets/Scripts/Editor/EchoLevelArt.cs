@@ -355,11 +355,25 @@ namespace Echo.EditorTools
             }
         }
 
-        /// <summary>Warning stripes on both lips of a pit and a warm glow rising from below.</summary>
+        /// <summary>
+        /// A pit: a dark shaft (so the backdrop never reads as floor down there), warning stripes on
+        /// both lips and a warm glow rising from below.
+        /// </summary>
         public static void Pit(Transform parent, float xMin, float xMax, float floorY, float bottomY)
         {
             var root = new GameObject("PitWarning").transform;
             root.SetParent(parent, false);
+
+            var shaft = new GameObject("Shaft");
+            shaft.transform.SetParent(root, false);
+            shaft.transform.position = new Vector3((xMin + xMax) * 0.5f, (floorY + bottomY) * 0.5f - 1f, 0f);
+            var shaftRenderer = shaft.AddComponent<SpriteRenderer>();
+            shaftRenderer.sprite = EchoSpriteFactory.Load(EchoSpriteFactory.Square);
+            shaftRenderer.drawMode = SpriteDrawMode.Sliced;
+            shaftRenderer.size = new Vector2(xMax - xMin, floorY - bottomY + 2f);
+            shaftRenderer.color = LabVoid;
+            shaftRenderer.sortingLayerName = "Level";
+            shaftRenderer.sortingOrder = -1;
 
             var stripe = EchoArtFactory.LoadSprite($"{Pixel}/Hazard/HazardStripe.png");
             float stripeHeight = stripe.bounds.size.y;

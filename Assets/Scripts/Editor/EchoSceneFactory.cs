@@ -27,6 +27,7 @@ namespace Echo.EditorTools
             EnsureScene(MainMenuPath, BuildMainMenu, false);
             EnsureScene(SandboxPath, BuildSandbox, false);
             EchoShowcaseFactory.Ensure();
+            EchoLevelFactory.EnsureAll();
         }
 
         [MenuItem("ECHO/Setup/Rebuild Movement Sandbox")]
@@ -105,7 +106,7 @@ namespace Echo.EditorTools
 
             EchoLevelArt.Hero(set.transform, new Vector2(4.4f, 0f), faceLeft: true);
 
-            EchoUiFactory.BuildMainMenuUI(SceneNames.DevSandbox);
+            EchoUiFactory.BuildMainMenuUI(SceneNames.Level1);
         }
 
         static void SetMusic(SceneAudio sceneAudio, MusicId music)
@@ -215,21 +216,21 @@ namespace Echo.EditorTools
         }
 
         // Rolling a pixel-perfect view makes the art shimmer; the shake keeps its offset only.
-        static void DisableCameraRoll(CameraFeedback feedback)
+        internal static void DisableCameraRoll(CameraFeedback feedback)
         {
             var settings = new SerializedObject(feedback);
             settings.FindProperty("maxRoll").floatValue = 0f;
             settings.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        static Transform Child(string name, Transform parent)
+        internal static Transform Child(string name, Transform parent)
         {
             var go = new GameObject(name);
             go.transform.SetParent(parent, false);
             return go.transform;
         }
 
-        static void Block(string name, Transform parent, float xMin, float yMin, float xMax, float yMax)
+        internal static void Block(string name, Transform parent, float xMin, float yMin, float xMax, float yMax)
         {
             var go = new GameObject(name) { layer = LayerMask.NameToLayer(Layers.Ground) };
             go.transform.SetParent(parent, false);
@@ -239,7 +240,7 @@ namespace Echo.EditorTools
             go.AddComponent<BoxCollider2D>().size = size;
         }
 
-        static void Pickup(Transform parent, float x, float y)
+        internal static void Pickup(Transform parent, float x, float y)
         {
             var go = new GameObject("EnergyPickup") { layer = LayerMask.NameToLayer(Layers.Pickup) };
             go.transform.SetParent(parent, false);
@@ -252,7 +253,7 @@ namespace Echo.EditorTools
         }
 
         // Floor-to-ceiling barrier (ceiling at y = 5) so it can't be jumped over.
-        static void Barrier(string name, Transform parent, float xMin, float xMax, bool isExit)
+        internal static void Barrier(string name, Transform parent, float xMin, float xMax, bool isExit)
         {
             var go = new GameObject(name) { layer = LayerMask.NameToLayer(Layers.Breakable) };
             go.transform.SetParent(parent, false);

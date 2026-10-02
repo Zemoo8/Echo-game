@@ -77,6 +77,7 @@ namespace Echo.EditorTools
             EchoPrefabFactory.SetReference(gameplayUI, "hudRoot", BuildHud(canvas).gameObject);
             BuildIntroCard(canvas);
             BuildCompleteCard(canvas);
+            BuildHints(canvas);
             BuildTouchControls(canvas);
             BuildPauseMenu(canvas);
 
@@ -202,6 +203,23 @@ namespace Echo.EditorTools
             var value = NewLabel(name + "Value", panel, "0", 20, Color.white, TextAnchor.MiddleRight);
             Place(value.rectTransform, new Vector2(0.5f, 1f), new Vector2(1f, 1f), new Vector2(125f, y), new Vector2(150f, 28f));
             return value;
+        }
+
+        // Tutorial hints and the checkpoint note: one line at the bottom centre, above nothing
+        // the player needs (the touch buttons sit in the corners).
+        static void BuildHints(RectTransform canvas)
+        {
+            var panel = NewPanel("Hints", canvas, new Vector2(600f, 44f));
+            Place(panel, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 26f), new Vector2(600f, 44f));
+            var group = panel.gameObject.AddComponent<CanvasGroup>();
+            group.alpha = 0f;
+            group.blocksRaycasts = false;
+            var text = NewLabel("Text", panel, "", 16, Color.white, TextAnchor.MiddleCenter);
+            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); // full alphabet (Kenney Future's K and X read as H)
+            Stretch(text.rectTransform);
+            var hints = panel.gameObject.AddComponent<HintDisplay>();
+            EchoPrefabFactory.SetReference(hints, "group", group);
+            EchoPrefabFactory.SetReference(hints, "text", text);
         }
 
         static void BuildDamageFlash(RectTransform canvas)
@@ -331,12 +349,14 @@ namespace Echo.EditorTools
 
             // Main list.
             var mainPanel = NewRect("MainPanel", content);
-            Place(mainPanel, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(56f, -250f), new Vector2(270f, 168f));
-            string[] names = { "PLAY", "MUSIC: ON", "EFFECTS: ON", "CREDITS" };
+            Place(mainPanel, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(56f, -246f), new Vector2(270f, 210f));
+            // CONTINUE shows only with saved progress (MainMenu hides it and relabels PLAY "NEW GAME").
+            string[] names = { "CONTINUE", "PLAY", "MUSIC: ON", "EFFECTS: ON", "CREDITS" };
             var entries = new MenuButton[names.Length];
             for (int i = 0; i < names.Length; i++)
                 entries[i] = MenuEntry(names[i], mainPanel, names[i], new Vector2(0f, 1f), new Vector2(0f, -i * 42f), new Vector2(270f, 36f), 20, false);
-            SetItems(mainPanel.gameObject.AddComponent<MenuList>(), entries);
+            var mainList = mainPanel.gameObject.AddComponent<MenuList>();
+            SetItems(mainList, entries);
 
             // Credits. Headings use Kenney Future; names use Unity's built-in font, because
             // Kenney Future's K is nearly identical to its H ("Kenney" would read "Henney").
@@ -383,10 +403,12 @@ namespace Echo.EditorTools
             EchoPrefabFactory.SetReference(menu, "logoGlow", glowGroup);
             EchoPrefabFactory.SetReference(menu, "mainPanel", mainPanel.gameObject);
             EchoPrefabFactory.SetReference(menu, "creditsPanel", credits.gameObject);
-            EchoPrefabFactory.SetReference(menu, "play", entries[0]);
-            EchoPrefabFactory.SetReference(menu, "music", entries[1]);
-            EchoPrefabFactory.SetReference(menu, "sound", entries[2]);
-            EchoPrefabFactory.SetReference(menu, "credits", entries[3]);
+            EchoPrefabFactory.SetReference(menu, "mainList", mainList);
+            EchoPrefabFactory.SetReference(menu, "continueGame", entries[0]);
+            EchoPrefabFactory.SetReference(menu, "play", entries[1]);
+            EchoPrefabFactory.SetReference(menu, "music", entries[2]);
+            EchoPrefabFactory.SetReference(menu, "sound", entries[3]);
+            EchoPrefabFactory.SetReference(menu, "credits", entries[4]);
             EchoPrefabFactory.SetReference(menu, "creditsBack", back);
         }
 

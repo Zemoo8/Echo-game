@@ -8,13 +8,16 @@ namespace Echo.UI
 {
     /// <summary>
     /// Energy meter: one cell per charge, filled cells are dashes available. The cell the next
-    /// dash will use glows; an empty meter blinks the bolt icon red; a dash with no energy shakes
-    /// the meter. Binds automatically to whichever player is active.
+    /// dash will use glows. When the last charge is spent, or a dash is refused for lack of
+    /// energy, the bolt blinks red for a moment (and a refused dash shakes the meter); an empty
+    /// meter on its own stays calm, since Level 1 starts empty on purpose.
+    /// Binds automatically to whichever player is active.
     /// </summary>
     public class EnergyHud : MonoBehaviour
     {
         const float ShakeDecay = 4f;
         const float ShakeDistance = 5f;
+        const float WarningTime = 2.5f;
 
         [Tooltip("Inactive child cloned for each energy cell.")]
         [SerializeField] EnergyCellView cellTemplate;
@@ -28,6 +31,7 @@ namespace Echo.UI
         int max;
         bool shown;
         bool warningShown;
+        float warningUntil = -1f;
         float shake;
         Vector2 shakeHome;
 
@@ -55,6 +59,7 @@ namespace Echo.UI
             bound.Energy.Changed += Show;
             bound.Dash.DashDenied += OnDashDenied;
             shown = false; // the first fill of a new player appears without animation
+            warningUntil = -1f;
             Show(bound.Energy.Current, bound.Energy.Max);
         }
 
@@ -85,16 +90,22 @@ namespace Echo.UI
                     cells[i].Set(i < energy, i == energy - 1, shown);
             }
 
+            if (shown && energy == 0 && current > 0)
+                warningUntil = Time.unscaledTime + WarningTime; // the last charge was just spent
             current = energy;
             max = capacity;
             shown = true;
         }
 
-        void OnDashDenied() => shake = 1f;
+        void OnDashDenied()
+        {
+            shake = 1f;
+            warningUntil = Time.unscaledTime + WarningTime;
+        }
 
         void Update()
         {
-            bool warning = max > 0 && current == 0;
+            bool warning = max > 0 && current == 0 && Time.unscaledTime < warningUntil;
             if (warning || warningShown)
             {
                 float pulse = warning ? UiEase.Pulse(7f) : 0f;

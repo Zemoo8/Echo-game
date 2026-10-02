@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Echo.Visuals
 {
     /// <summary>
-    /// Feedback for world events (energy collected, barriers broken). Lives on the persistent
+    /// Feedback for world events (energy collected, barriers broken, checkpoints). Lives on the persistent
     /// Systems prefab and listens to the gameplay's static events.
     /// </summary>
     public class WorldFeedback : MonoBehaviour
@@ -19,12 +19,20 @@ namespace Echo.Visuals
         {
             EnergyPickup.AnyCollected += OnEnergyCollected;
             BreakableBarrier.AnyBroken += OnBarrierBroken;
+            Checkpoint.AnyActivated += OnCheckpoint;
         }
 
         void OnDisable()
         {
             EnergyPickup.AnyCollected -= OnEnergyCollected;
             BreakableBarrier.AnyBroken -= OnBarrierBroken;
+            Checkpoint.AnyActivated -= OnCheckpoint;
+        }
+
+        static void OnCheckpoint(Checkpoint checkpoint)
+        {
+            AudioManager.Play(SfxId.Checkpoint);
+            VfxManager.Play(VfxId.PlayerRespawn, checkpoint.transform.position + new Vector3(0f, 0.6f, 0f));
         }
 
         static void OnEnergyCollected(EnergyPickup pickup)

@@ -445,6 +445,66 @@ def scanner_lamp():
     save(img, "Security", "ScannerLamp.png")
 
 
+# --- gameplay objects (M3) ----------------------------------------------------------------------
+
+CHECK_OFF = hexc("3A4652")
+CHECK_ON = hexc("F1F5FF")
+CHECK_GLOW = hexc("B8C8D8")
+
+
+def checkpoint_beacon():
+    """12x28 checkpoint beacon: a metal post with a lamp head. Dark when unused; white (the
+    interface color, since checkpoints are neither energy, danger nor exit) once activated."""
+    for name, lamp, glow in (("Checkpoint_Off", CHECK_OFF, METAL_DARK), ("Checkpoint_On", CHECK_ON, CHECK_GLOW)):
+        img = Image.new("RGBA", (12, 28), CLEAR)
+        px = img.load()
+        for y in range(10, 28):
+            for x in range(4, 8):
+                px[x, y] = METAL_LIGHT if x == 4 else METAL if x < 7 else METAL_DARK
+        for x in range(2, 10):
+            px[x, 26], px[x, 27] = METAL, METAL_DARK  # foot
+        for y in range(1, 10):
+            for x in range(2, 10):
+                edge = x in (2, 9) or y in (1, 9)
+                px[x, y] = METAL_DARK if edge else (glow if x in (3, 8) or y in (2, 8) else lamp)
+        px[5, 0], px[6, 0] = METAL_LIGHT, METAL_LIGHT
+        save(img, "Gameplay", f"{name}.png")
+
+
+LASER = hexc("FF3355")
+LASER_CORE = hexc("FFD6DC")
+LASER_EDGE = hexc("8A1A22")
+
+
+def laser_parts():
+    """Laser gate: a 16x8 emitter (metal, red lens) and a 8x16 beam tile in 3 shimmering frames."""
+    img = Image.new("RGBA", (16, 8), CLEAR)
+    px = img.load()
+    for x in range(16):
+        for y in range(6):
+            px[x, y] = METAL_LIGHT if y == 0 else METAL if y < 5 else METAL_DARK
+    for x in range(5, 11):
+        px[x, 6] = LASER
+        px[x, 7] = LASER_CORE if 6 <= x <= 9 else LASER
+    for x in (0, 15):
+        for y in range(6):
+            px[x, y] = VOID
+    save(img, "Gameplay", "LaserEmitter.png")
+
+    for frame in range(3):
+        img = Image.new("RGBA", (8, 16), CLEAR)
+        px = img.load()
+        for y in range(16):
+            wobble = (y + frame * 5) % 16 < 3
+            px[1, y] = (LASER_EDGE[0], LASER_EDGE[1], LASER_EDGE[2], 140)
+            px[6, y] = (LASER_EDGE[0], LASER_EDGE[1], LASER_EDGE[2], 140)
+            px[2, y] = LASER
+            px[5, y] = LASER
+            px[3, y] = LASER_CORE if not wobble else hexc("FFFFFF")
+            px[4, y] = LASER_CORE
+        save(img, "Gameplay", f"LaserBeam_{frame:02d}.png")
+
+
 if __name__ == "__main__":
     lab_block()
     lab_platform()
@@ -468,4 +528,6 @@ if __name__ == "__main__":
     reactor("Reactor_Calm", ENERGY, ENERGY_LIGHT, ENERGY_DEEP)
     reactor("Reactor_Overload", DANGER, hexc("FFD0C0"), hexc("8A1A22"))
     scanner_lamp()
+    checkpoint_beacon()
+    laser_parts()
     print("Wrote ECHO pixel art to", os.path.abspath(OUT))

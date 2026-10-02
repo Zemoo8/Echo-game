@@ -22,6 +22,8 @@ namespace Echo.Audio
         UiBack,
         PauseOpen,
         PauseClose,
+        Checkpoint,
+        LaserOn,
     }
 
     /// <summary>Music tracks and ambience beds, by name.</summary>

@@ -13,6 +13,7 @@ namespace Echo.EditorTools
     /// Headless (needs a graphics device, so no -nographics):
     /// -batchmode -quit -executeMethod Echo.EditorTools.EchoCapture.CaptureSandbox
     /// -batchmode -quit -executeMethod Echo.EditorTools.EchoCapture.CaptureShowcase
+    /// -batchmode -quit -executeMethod Echo.EditorTools.EchoCapture.CaptureLevel1
     /// </summary>
     public static class EchoCapture
     {
@@ -21,18 +22,30 @@ namespace Echo.EditorTools
         const int Height = 720;
 
         // Camera centres along the sandbox route: start, first pit (city window), second pit, barrier and exit.
-        static readonly Vector2[] Shots =
+        static readonly Vector2[] SandboxShots =
         {
             new Vector2(0f, 2.5f), new Vector2(16f, 2.5f), new Vector2(31f, 2.5f), new Vector2(48f, 2.5f),
         };
 
+        // Level 1, section by section: wake, stairs and pit, barrier, air-dash pit, lasers, final gap, exit.
+        static readonly Vector2[] Level1Shots =
+        {
+            new Vector2(6f, 2.5f), new Vector2(33f, 4f), new Vector2(55f, 2.5f), new Vector2(78f, 2.5f),
+            new Vector2(106f, 2.5f), new Vector2(128f, 2.5f), new Vector2(150f, 2.5f),
+        };
+
         [MenuItem("ECHO/Tools/Capture Sandbox Screenshots")]
-        public static void CaptureSandbox()
+        public static void CaptureSandbox() => CaptureWorld(EchoSceneFactory.SandboxPath, SandboxShots, "sandbox_");
+
+        [MenuItem("ECHO/Tools/Capture Level 1 Screenshots")]
+        public static void CaptureLevel1() => CaptureWorld(EchoLevelFactory.Level1Path, Level1Shots, "level1_");
+
+        static void CaptureWorld(string scenePath, Vector2[] shots, string prefix)
         {
             if (!Application.isBatchMode && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                 return;
 
-            EditorSceneManager.OpenScene(EchoSceneFactory.SandboxPath, OpenSceneMode.Single);
+            EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
             var camera = Camera.main;
             Directory.CreateDirectory(OutputFolder);
 
@@ -46,9 +59,9 @@ namespace Echo.EditorTools
             var previousTarget = camera.targetTexture;
             camera.targetTexture = target;
 
-            for (int i = 0; i < Shots.Length; i++)
+            for (int i = 0; i < shots.Length; i++)
             {
-                camera.transform.position = new Vector3(Shots[i].x, Shots[i].y, -10f);
+                camera.transform.position = new Vector3(shots[i].x, shots[i].y, -10f);
                 camera.Render();
 
                 RenderTexture.active = target;
@@ -57,7 +70,7 @@ namespace Echo.EditorTools
                 image.Apply();
                 RenderTexture.active = null;
 
-                string path = $"{OutputFolder}/sandbox_{i + 1}.png";
+                string path = $"{OutputFolder}/{prefix}{i + 1}.png";
                 File.WriteAllBytes(path, image.EncodeToPNG());
                 Object.DestroyImmediate(image);
                 Debug.Log($"[ECHO Capture] {path}");

@@ -1,20 +1,22 @@
 using Echo.Audio;
 using Echo.Core;
+using Echo.Presentation;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace Echo.UI
 {
     /// <summary>
-    /// Title screen: the ECHO logo over the lab, with Play, the music and sound switches and the
-    /// credits. Keyboard, gamepad, mouse and touch all work (see <see cref="MenuList"/>).
+    /// Title screen: the ECHO logo over the lab, with Continue (when there's saved progress),
+    /// Play / New game, the music and sound switches and the credits. Keyboard, gamepad, mouse
+    /// and touch all work (see <see cref="MenuList"/>).
     /// </summary>
     public class MainMenu : MonoBehaviour
     {
         const float IntroTime = 0.9f;
         const float LogoDrop = 14f;
 
-        [SerializeField] string firstScene = SceneNames.DevSandbox;
+        [SerializeField] string firstScene = SceneNames.Level1;
 
         [Header("Layout")]
         [SerializeField] CanvasGroup content;
@@ -22,8 +24,10 @@ namespace Echo.UI
         [SerializeField] CanvasGroup logoGlow;
         [SerializeField] GameObject mainPanel;
         [SerializeField] GameObject creditsPanel;
+        [SerializeField] MenuList mainList;
 
         [Header("Buttons")]
+        [SerializeField] MenuButton continueGame;
         [SerializeField] MenuButton play;
         [SerializeField] MenuButton music;
         [SerializeField] MenuButton sound;
@@ -36,7 +40,8 @@ namespace Echo.UI
         void Awake()
         {
             logoHome = logo.anchoredPosition;
-            play.Button.onClick.AddListener(OnPlay);
+            play.Button.onClick.AddListener(() => Load(firstScene));
+            continueGame.Button.onClick.AddListener(() => Load(SaveData.ContinueScene));
             music.Button.onClick.AddListener(() => SoundSettings.MusicOn = !SoundSettings.MusicOn);
             sound.Button.onClick.AddListener(() => SoundSettings.SfxOn = !SoundSettings.SfxOn);
             credits.Button.onClick.AddListener(() => ShowCredits(true));
@@ -49,7 +54,13 @@ namespace Echo.UI
                 GameManager.Instance.SetState(GameState.MainMenu);
             SoundSettings.Changed += RefreshLabels;
             RefreshLabels();
+
+            // With saved progress the list reads CONTINUE / NEW GAME, otherwise just PLAY.
+            bool canContinue = PresentationMode.IsEnabled(Feature.SaveSystem) && SaveData.HasProgress;
+            continueGame.gameObject.SetActive(canContinue);
+            play.SetLabel(canContinue ? "NEW GAME" : "PLAY");
             ShowCredits(false);
+            mainList.Refresh();
             Animate();
         }
 
@@ -90,13 +101,15 @@ namespace Echo.UI
             sound.SetLabel(SoundSettings.SfxOn ? "EFFECTS: ON" : "EFFECTS: OFF");
         }
 
-        void OnPlay()
+        void Load(string scene)
         {
             var loader = SceneLoader.Instance;
             if (loader == null || loader.IsLoading)
                 return;
+            if (!SceneLoader.IsInBuild(scene))
+                scene = SceneNames.DevSandbox; // only during development, before Level 1 exists
             content.interactable = false;
-            loader.Load(firstScene);
+            loader.Load(scene);
         }
 
         static bool BackPressed()
