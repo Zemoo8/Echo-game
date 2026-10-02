@@ -27,7 +27,7 @@ namespace Echo.Player
         readonly List<IDashTarget> hitThisDash = new List<IDashTarget>(4);
 
         float lastRequestTime = float.NegativeInfinity;
-        float endTime;
+        int stepsLeft;
         float cooldownUntil;
         int airDashesUsed;
 
@@ -100,7 +100,9 @@ namespace Echo.Player
         {
             IsDashing = true;
             Direction = movement.Facing;
-            endTime = Time.time + Tuning.dashDuration;
+            // Counted in physics steps, not compared against Time.time: float rounding of a large
+            // clock could add a step and make the same dash travel 10% further.
+            stepsLeft = Mathf.Max(1, Mathf.RoundToInt(Tuning.dashDuration / Time.fixedDeltaTime));
             if (!movement.IsGrounded)
                 airDashesUsed++;
 
@@ -116,7 +118,8 @@ namespace Echo.Player
         void Continue()
         {
             bool blocked = Mathf.Abs(body.linearVelocity.x) < Tuning.DashSpeed * BlockedSpeedRatio;
-            if (blocked || Time.time >= endTime)
+            stepsLeft--;
+            if (blocked || stepsLeft <= 0)
             {
                 Finish();
                 return;

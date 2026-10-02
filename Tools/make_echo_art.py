@@ -58,30 +58,53 @@ def save(img, *parts):
     img.save(path)
 
 
-def lab_block():
+LAB_PANELS = dict(body=BODY, seam=SEAM, light=BODY_LIGHT, rivet=RIVET, bevel=BEVEL,
+                  lip_dark=LIP_DARK, lip=LIP, edge=EDGE, deep=DEEP, void=VOID, indicator=None)
+
+# Security wing: the steel of the recolored bulkheads, a pale cold edge.
+SECURITY_PANELS = dict(body=hexc("1B1F22"), seam=hexc("14181A"), light=hexc("22282C"), rivet=hexc("40515E"),
+                       bevel=hexc("293238"), lip_dark=hexc("343D44"), lip=hexc("526D80"), edge=hexc("8FB3CC"),
+                       deep=hexc("0E1113"), void=hexc("07090A"), indicator=None)
+
+# Energy core: deep navy machinery with a periwinkle edge and small energy indicator lights.
+CORE_PANELS = dict(body=hexc("141B33"), seam=hexc("0C1124"), light=hexc("1A2340"), rivet=hexc("2F3F6B"),
+                   bevel=hexc("212C4F"), lip_dark=hexc("2A3A66"), lip=hexc("4A63A8"), edge=hexc("8EA2FF"),
+                   deep=hexc("080C1C"), void=hexc("04060F"), indicator=ENERGY_DEEP)
+
+
+def panel_block(folder, name, c):
     """48x48, sliced with 16 px borders: lit top edge, bevelled sides, riveted panels."""
-    img = Image.new("RGBA", (48, 48), BODY)
+    img = Image.new("RGBA", (48, 48), c["body"])
     px = img.load()
     rng = random.Random(7)
     for y in range(48):
         for x in range(48):
             lx, ly = x % 16, y % 16
-            color = BODY
+            color = c["body"]
             if lx == 15 or ly == 15:
-                color = SEAM
+                color = c["seam"]
             elif (lx, ly) in ((2, 2), (13, 2), (2, 13), (13, 13)):
-                color = RIVET
+                color = c["rivet"]
             elif rng.random() < 0.05:
-                color = BODY_LIGHT
+                color = c["light"]
             px[x, y] = color
+    if c["indicator"]:
+        for x0 in range(4, 48, 16):
+            for x in range(x0, x0 + 3):
+                px[x, 24] = c["indicator"]
+            px[x0 + 1, 24] = ENERGY
     for x in range(48):
-        px[x, 0], px[x, 1], px[x, 2], px[x, 3] = EDGE, LIP, LIP_DARK, DEEP
-        px[x, 46], px[x, 47] = DEEP, VOID
+        px[x, 0], px[x, 1], px[x, 2], px[x, 3] = c["edge"], c["lip"], c["lip_dark"], c["deep"]
+        px[x, 46], px[x, 47] = c["deep"], c["void"]
     for y in range(1, 46):
-        px[0, y], px[1, y] = VOID, BEVEL
-        px[46, y], px[47, y] = DEEP, VOID
-    px[0, 0], px[47, 0] = LIP, LIP
-    save(img, "Lab", "LabBlock.png")
+        px[0, y], px[1, y] = c["void"], c["bevel"]
+        px[46, y], px[47, y] = c["deep"], c["void"]
+    px[0, 0], px[47, 0] = c["lip"], c["lip"]
+    save(img, folder, name)
+
+
+def lab_block():
+    panel_block("Lab", "LabBlock.png", LAB_PANELS)
 
 
 def lab_platform():
@@ -345,6 +368,83 @@ def ui_logo():
     save(img, "UI", "Logo.png")
 
 
+# --- biomes 2-4 ---------------------------------------------------------------------------------
+
+def biome_blocks():
+    panel_block("Security", "SecurityBlock.png", SECURITY_PANELS)
+    panel_block("Core", "CoreBlock.png", CORE_PANELS)
+
+
+def conduit(frame, frames=4):
+    """8x32 vertical energy conduit for the core's walls: metal pipe, cyan core whose bright
+    pulses travel upward over the frames (tiles seamlessly)."""
+    img = Image.new("RGBA", (8, 32), CLEAR)
+    px = img.load()
+    for y in range(32):
+        px[0, y], px[7, y] = VOID, VOID
+        px[1, y], px[6, y] = METAL, METAL_DARK
+        px[2, y], px[5, y] = ENERGY_DEEP, ENERGY_DEEP
+        bright = (y + frame * 4) % 16 < 3
+        px[3, y] = ENERGY_LIGHT if bright else ENERGY
+        px[4, y] = ENERGY if bright else ENERGY_DEEP
+        if y % 16 in (0, 1):
+            for x in range(1, 7):
+                px[x, y] = METAL_LIGHT if y % 16 == 0 else METAL
+    save(img, "Core", f"Conduit_{frame:02d}.png")
+
+
+def reactor(name, core, core_light, core_deep):
+    """128x128 reactor for the Guardian's arena: bolted housing, vented ring, dark glass and a
+    dithered glowing core. Drawn calm (energy) and overloaded (danger)."""
+    size = 128
+    img = Image.new("RGBA", (size, size), CLEAR)
+    px = img.load()
+    bayer = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]
+    c = (size - 1) / 2
+    for y in range(size):
+        for x in range(size):
+            d = math.hypot(x - c, y - c)
+            angle = math.degrees(math.atan2(y - c, x - c)) % 360
+            if d > 63.5:
+                continue
+            if d > 60:
+                color = METAL_DARK if d > 62.5 else METAL_LIGHT if y < c else METAL
+            elif d > 56:
+                color = METAL
+                if any(abs(angle - a) < 2.2 for a in range(0, 360, 45)) and 57 < d < 59:
+                    color = METAL_LIGHT  # bolts
+            elif d > 44:
+                vent = int(angle / 15) % 2 == 0 and 46 < d < 54
+                color = core_deep if vent else METAL_DARK
+            elif d > 41:
+                color = VOID
+            elif d > 30:
+                color = hexc("0B1420")
+                if (x + y) % 9 == 0 and y < c:
+                    color = hexc("1D3346")  # glass glint
+            else:
+                t = d / 30
+                level = (1 - t) * 16
+                b = bayer[y % 4][x % 4]
+                color = core_light if level > b + 9 else core if level > b * 0.45 else core_deep
+            px[x, y] = color
+    save(img, "Core", f"{name}.png")
+
+
+def scanner_lamp():
+    """12x6 ceiling scanner for the security wing: metal housing with a red lens."""
+    img = Image.new("RGBA", (12, 6), CLEAR)
+    px = img.load()
+    for x in range(12):
+        for y in range(4):
+            px[x, y] = METAL_LIGHT if y == 0 else METAL if y < 3 else METAL_DARK
+    for x in range(4, 8):
+        px[x, 4] = DANGER
+        px[x, 5] = hexc("FFB09A")
+    px[0, 0], px[11, 0] = CLEAR, CLEAR
+    save(img, "Security", "ScannerLamp.png")
+
+
 if __name__ == "__main__":
     lab_block()
     lab_platform()
@@ -362,4 +462,10 @@ if __name__ == "__main__":
     ui_energy_cells()
     ui_icons()
     ui_logo()
+    biome_blocks()
+    for i in range(4):
+        conduit(i)
+    reactor("Reactor_Calm", ENERGY, ENERGY_LIGHT, ENERGY_DEEP)
+    reactor("Reactor_Overload", DANGER, hexc("FFD0C0"), hexc("8A1A22"))
+    scanner_lamp()
     print("Wrote ECHO pixel art to", os.path.abspath(OUT))

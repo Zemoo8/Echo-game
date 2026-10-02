@@ -19,6 +19,7 @@ namespace Echo.EditorTools
         public const string PlayerVisualsPath = "Assets/Settings/Visuals/PlayerVisuals.asset";
         public const string VfxLibraryPath = "Assets/Settings/Visuals/VfxLibrary.asset";
         public const string AudioLibraryPath = "Assets/Settings/Audio/AudioLibrary.asset";
+        public const string KitsFolder = "Assets/Settings/Visuals/Kits";
 
         const string MaterialsFolder = "Assets/Art/Materials";
         const string VfxFolder = "Assets/Prefabs/VFX";
@@ -48,7 +49,7 @@ namespace Echo.EditorTools
 
         /// <summary>
         /// Builds the art data and rebuilds everything that shows it: the player prefab, the
-        /// persistent UI, the main menu and the movement sandbox.
+        /// persistent UI, the main menu, the movement sandbox and the design showcase.
         /// Headless: -batchmode -quit -executeMethod Echo.EditorTools.EchoArtFactory.ApplyVisualOverhaul
         /// </summary>
         [MenuItem("ECHO/Setup/Apply Visual Overhaul")]
@@ -63,6 +64,7 @@ namespace Echo.EditorTools
             EchoUiFactory.RebuildSystemsUI();
             EchoSceneFactory.RebuildMainMenu();
             EchoSceneFactory.RebuildSandbox();
+            EchoShowcaseFactory.Rebuild();
             AssetDatabase.SaveAssets();
             Debug.Log("[ECHO Art] Visual overhaul applied.");
         }
@@ -70,6 +72,7 @@ namespace Echo.EditorTools
         public static void EnsureAll()
         {
             EnsurePlayerVisuals();
+            EnsureEnvironmentKits();
             var vfx = EnsureVfxLibrary();
             var audio = EnsureAudioLibrary();
             WireSystems(vfx, audio);
@@ -152,6 +155,78 @@ namespace Echo.EditorTools
             for (int i = 0; i < count; i++)
                 sprites[i] = LoadSprite(string.Format(pathFormat, i));
             return sprites;
+        }
+
+        // --- biomes -----------------------------------------------------------------------------
+
+        /// <summary>One kit per biome (Assets/Settings/Visuals/Kits). Refreshed in place each run.</summary>
+        public static void EnsureEnvironmentKits()
+        {
+            const string lab = "Assets/ThirdParty/Ansimuz/SideviewSciFi/Lab";
+            const string security = "Assets/ThirdParty/Ansimuz/SideviewSciFi/Security";
+            const string core = "Assets/ThirdParty/Ansimuz/SideviewSciFi/Core";
+            const string props = "Assets/ThirdParty/Ansimuz/WarpedCity/Props";
+
+            Kit(Biome.Lab, "ABANDONED LAB",
+                "Dark teal corridors, cryo pods and dead monitors under dim cyan ceiling lights. The city glows through the windows.",
+                $"{PixelArt}/Lab/LabBlock.png",
+                new[] { $"{lab}/Corridor_A.png", $"{lab}/Corridor_Machinery.png", $"{lab}/Corridor_Terminal.png", $"{lab}/Corridor_A.png" },
+                Color.white, $"{lab}/Corridor_Back.png", new Color(0.6f, 0.8f, 0.95f),
+                new Color32(0x00, 0x04, 0x10, 0xFF), new Color(0.85f, 0.93f, 1f), 0.85f, new Color(0.55f, 0.85f, 0.95f),
+                new[] { $"{lab}/CryoPod.png", $"{lab}/ServerCabinets.png", $"{lab}/SmallTerminal.png", $"{props}/ScreenPod.png" },
+                MusicId.Lab);
+
+            Kit(Biome.Security, "SECURITY WING",
+                "Cold steel bulkheads and hard white light. Red scanners sweep the halls and turrets guard the doors.",
+                $"{PixelArt}/Security/SecurityBlock.png",
+                new[] { $"{security}/Bulkhead_bg-wall-with-supports.png", $"{security}/Bulkhead_bg-wall.png" },
+                Color.white, null, Color.white,
+                new Color32(0x07, 0x09, 0x0A, 0xFF), new Color(0.8f, 0.88f, 1f), 0.8f, new Color(0.85f, 0.92f, 1f),
+                new[] { $"{props}/LabDoor.png", $"{props}/ServerRack.png", $"{props}/Terminal.png", $"{props}/WallPanelTall.png" },
+                MusicId.Security);
+
+            Kit(Biome.Core, "ENERGY CORE",
+                "Deep navy machinery wrapped in cyan conduits. Everything here hums with the energy ECHO runs on.",
+                $"{PixelArt}/Core/CoreBlock.png",
+                new[] { $"{core}/Machinery_Back.png" },
+                new Color(0.7f, 0.82f, 1f), null, Color.white,
+                new Color32(0x04, 0x06, 0x0F, 0xFF), new Color(0.75f, 0.85f, 1f), 0.75f, new Color(0.4f, 0.9f, 1f),
+                new[] { $"{props}/EnergyPod.png", $"{props}/PillarMachine.png", $"{props}/MachineryPipes.png" },
+                MusicId.Core);
+
+            Kit(Biome.Reactor, "THE GUARDIAN'S REACTOR",
+                "The central reactor. Calm, it glows energy cyan; when the Guardian attacks it overloads to danger red.",
+                $"{PixelArt}/Core/CoreBlock.png",
+                new[] { $"{core}/Machinery_Back.png" },
+                new Color(0.45f, 0.55f, 0.75f), null, Color.white,
+                new Color32(0x03, 0x04, 0x0B, 0xFF), new Color(0.7f, 0.78f, 1f), 0.6f, new Color(0.4f, 0.9f, 1f),
+                new[] { $"{PixelArt}/Core/Reactor_Calm.png", $"{PixelArt}/Core/Reactor_Overload.png" },
+                MusicId.Boss);
+        }
+
+        public static EnvironmentKit LoadKit(Biome biome) =>
+            AssetDatabase.LoadAssetAtPath<EnvironmentKit>($"{KitsFolder}/{biome}.asset");
+
+        static void Kit(Biome biome, string name, string description, string block, string[] backdrop, Color backdropTint,
+                        string farLayer, Color farTint, Color voidColor, Color ambient, float ambientIntensity, Color lamp,
+                        string[] props, MusicId music)
+        {
+            var kit = LoadOrCreate<EnvironmentKit>($"{KitsFolder}/{biome}.asset");
+            kit.biome = biome;
+            kit.displayName = name;
+            kit.description = description;
+            kit.block = LoadSprite(block);
+            kit.backdrop = System.Array.ConvertAll(backdrop, LoadSprite);
+            kit.backdropTint = backdropTint;
+            kit.farLayer = farLayer != null ? LoadSprite(farLayer) : null;
+            kit.farTint = farTint;
+            kit.voidColor = voidColor;
+            kit.ambientColor = ambient;
+            kit.ambientIntensity = ambientIntensity;
+            kit.lampColor = lamp;
+            kit.props = System.Array.ConvertAll(props, LoadSprite);
+            kit.music = music;
+            EditorUtility.SetDirty(kit);
         }
 
         // --- effects ----------------------------------------------------------------------------

@@ -104,7 +104,7 @@ namespace Echo.UI
         void RefreshLabels()
         {
             music.SetLabel(SoundSettings.MusicOn ? "MUSIC: ON" : "MUSIC: OFF");
-            sound.SetLabel(SoundSettings.SfxOn ? "SOUND FX: ON" : "SOUND FX: OFF");
+            sound.SetLabel(SoundSettings.SfxOn ? "EFFECTS: ON" : "EFFECTS: OFF");
         }
 
         void OnResume()

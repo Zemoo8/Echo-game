@@ -4,7 +4,8 @@ changes. Every source is CC0 / public domain (see ASSET_LICENSES.md); the modifi
 listed here so they are reproducible.
 
 Usage:
-    python Tools/import_assets.py <downloads-folder>
+    python Tools/import_assets.py <downloads-folder> [pack ...]
+    (packs: warped, sideview, kenney, music; default: all)
 
 The downloads folder must contain the extracted packs (see Tools/README.md for the URLs):
     ansimuz/Sideview Sci-Fi - Patreon Collection/
@@ -72,6 +73,25 @@ GREEN_TO_CYAN = (80, 160, 188)     # lab screens and pods glow with energy, not 
 CYAN_TO_DANGER = (165, 205, 12)    # enemy eyes and sensors read as danger
 MAGENTA_TO_EXIT = (270, 335, 140)  # the corridor EXIT sign uses ECHO's exit green
 AMBER_TO_CYAN = (25, 65, 188)      # background screens: energy cyan, not warning amber
+
+
+def warm_to_steel(img, hue=205, saturation=0.55):
+    """Turns warm browns and ambers into cold steel blue (the security wing). Bright, pale lamp
+    cores lose most of their color so lamps read as cold white light."""
+    img = img.convert("RGBA")
+    px = img.load()
+    for y in range(img.height):
+        for x in range(img.width):
+            r, g, b, a = px[x, y]
+            if not a:
+                continue
+            h, s, v = colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)
+            deg = h * 360
+            if deg <= 70 or deg >= 340:
+                s = s * (0.25 if v > 0.8 and s < 0.5 else saturation)
+                nr, ng, nb = colorsys.hsv_to_rgb(hue / 360, s, v)
+                px[x, y] = (round(nr * 255), round(ng * 255), round(nb * 255), a)
+    return img
 
 
 # --- packs -----------------------------------------------------------------------------------
@@ -148,9 +168,11 @@ def sideview_scifi(src):
     shutil.copy(os.path.join(machinery, "tile-set-sci-fi-interior-platform.png"),
                 out("Ansimuz", "SideviewSciFi", "Core", "Machinery_Tileset.png"))
 
+    # Security wing: the warm bulkheads become cold steel blue (warm is reserved for danger).
     bulkhead = os.path.join(env, "bulkhead-walls", "PNG")
     for name in ("bg-wall-with-supports", "bg-wall", "floor", "foreground"):
-        shutil.copy(os.path.join(bulkhead, f"{name}.png"), out("Ansimuz", "SideviewSciFi", "Security", f"Bulkhead_{name}.png"))
+        piece = warm_to_steel(Image.open(os.path.join(bulkhead, f"{name}.png")))
+        piece.save(out("Ansimuz", "SideviewSciFi", "Security", f"Bulkhead_{name}.png"))
 
     shutil.copy(os.path.join(root, "public-license.txt"), out("Ansimuz", "SideviewSciFi", "LICENSE.txt"))
 
@@ -211,8 +233,7 @@ def music(src):
 
 if __name__ == "__main__":
     downloads = sys.argv[1]
-    warped_city(downloads)
-    sideview_scifi(downloads)
-    kenney(downloads)
-    music(downloads)
+    packs = {"warped": warped_city, "sideview": sideview_scifi, "kenney": kenney, "music": music}
+    for name in sys.argv[2:] or packs:
+        packs[name](downloads)
     print("Imported into", os.path.abspath(THIRD))

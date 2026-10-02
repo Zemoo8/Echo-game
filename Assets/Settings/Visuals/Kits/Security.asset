@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 020e90422bfec624fbbff73afbe321cc, type: 3}
+  m_Name: Security
+  m_EditorClassIdentifier: Echo::Echo.Visuals.EnvironmentKit
+  biome: 1
+  displayName: SECURITY WING
+  description: Cold steel bulkheads and hard white light. Red scanners sweep the
+    halls and turrets guard the doors.
+  block: {fileID: 21300000, guid: b70cdede5664be34e841d49985c5f13a, type: 3}
+  backdrop:
+  - {fileID: 21300000, guid: 121639a3e1fca514e8cac4a574da2fe3, type: 3}
+  - {fileID: 21300000, guid: 466663c2816428f4797f84b035c2cb82, type: 3}
+  backdropTint: {r: 1, g: 1, b: 1, a: 1}
+  farLayer: {fileID: 0}
+  farTint: {r: 1, g: 1, b: 1, a: 1}
+  voidColor: {r: 0.02745098, g: 0.03529412, b: 0.039215688, a: 1}
+  ambientColor: {r: 0.8, g: 0.88, b: 1, a: 1}
+  ambientIntensity: 0.8
+  lampColor: {r: 0.85, g: 0.92, b: 1, a: 1}
+  props:
+  - {fileID: 21300000, guid: 2966f55d973cea846aeb379d390f3c85, type: 3}
+  - {fileID: 21300000, guid: d39366030f6cbfe4e906eba85870b7a5, type: 3}
+  - {fileID: 21300000, guid: f4d70593f4e43534fb904d6704d48517, type: 3}
+  - {fileID: 21300000, guid: e3cf04c31759ad040aef2213e5b4efd8, type: 3}
+  music: 3

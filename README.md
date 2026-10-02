@@ -41,12 +41,12 @@ that only a dash can break, so the player always has to keep one charge in reser
 
 | Step | How |
 |------|-----|
-| Third-party art and audio | `python Tools/import_assets.py <downloads>` copies the CC0 packs into `Assets/ThirdParty/` with ECHO's recolors (see `Tools/README.md`) |
+| Third-party art and audio | `python Tools/import_assets.py <downloads> [pack ...]` copies the CC0 packs into `Assets/ThirdParty/` with ECHO's recolors (see `Tools/README.md`) |
 | ECHO's own pixel art | `python Tools/make_echo_art.py` draws tiles, energy cells, barriers, FX textures and the UI (panels, HUD cells, icons, logo) into `Assets/Art/Pixel/` |
 | Import settings | Automatic, by folder (`EchoImportRules`): 32 px per unit, point filtering, compressed audio |
-| Build the look | `ECHO > Setup > Apply Visual Overhaul` makes the effect materials, the player animation set, every particle effect, the audio library, and rebuilds the player prefab, the persistent UI (`EchoUiFactory`), the main menu and the movement sandbox |
-| Swap art later | Edit the data assets, not code: `Settings/Visuals/PlayerVisuals` (animation frames), `Settings/Visuals/VfxLibrary` (effects), `Settings/Audio/AudioLibrary` (sounds and music) |
-| Screenshots | `ECHO > Tools > Capture Sandbox Screenshots` writes stills to `Docs/Screenshots/` |
+| Build the look | `ECHO > Setup > Apply Visual Overhaul` makes the effect materials, the player animation set, every particle effect, the audio library, and rebuilds the player prefab, the persistent UI (`EchoUiFactory`), the main menu, the movement sandbox and the design showcase |
+| Swap art later | Edit the data assets, not code: `Settings/Visuals/PlayerVisuals` (animation frames), `Settings/Visuals/VfxLibrary` (effects), `Settings/Visuals/Kits/*` (one look per biome), `Settings/Audio/AudioLibrary` (sounds and music) |
+| Screenshots | `ECHO > Tools > Capture Sandbox Screenshots` and `ECHO > Tools > Capture Design Showcase Slides` write stills to `Docs/Screenshots/` |
 
 ## Documents
 

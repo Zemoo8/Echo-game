@@ -5,7 +5,7 @@ Python scripts that produce ECHO's art inputs. They need Python 3 with Pillow (`
 
 | Script | What it does |
 |--------|--------------|
-| `import_assets.py <downloads>` | Copies the third-party packs into `Assets/ThirdParty/`, applying ECHO's recolors and crops |
+| `import_assets.py <downloads> [pack ...]` | Copies the third-party packs into `Assets/ThirdParty/`, applying ECHO's recolors and crops. Packs: `warped`, `sideview`, `kenney`, `music` (default: all) |
 | `make_echo_art.py` | Draws ECHO's original pixel art into `Assets/Art/Pixel/` |
 
 After either script runs, open Unity (or run it headless) so the files import with the rules in

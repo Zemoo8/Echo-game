@@ -6,9 +6,9 @@ using UnityEngine.Rendering.Universal;
 namespace Echo.EditorTools
 {
     /// <summary>
-    /// Dresses code-built levels with ECHO's art: lab panel blocks, corridor backdrops, parallax,
-    /// props, pit warnings, energy cells, energy barriers, lights and ambient dust.
-    /// Biome 1 (abandoned research lab) for now; later biomes swap the sprite paths.
+    /// Dresses code-built levels with ECHO's art: panel blocks, backdrops, parallax, props, pit
+    /// warnings, energy cells, energy barriers, lights and ambient dust. The lab helpers are the
+    /// original biome 1 set; the kit helpers dress any biome from its EnvironmentKit.
     /// </summary>
     public static class EchoLevelArt
     {
@@ -17,6 +17,7 @@ namespace Echo.EditorTools
 
         const string Lab = "Assets/ThirdParty/Ansimuz/SideviewSciFi/Lab";
         const string Core = "Assets/ThirdParty/Ansimuz/SideviewSciFi/Core";
+        const string Security = "Assets/ThirdParty/Ansimuz/SideviewSciFi/Security";
         const string Props = "Assets/ThirdParty/Ansimuz/WarpedCity/Props";
         const string Pixel = "Assets/Art/Pixel";
         const string Particles = "Assets/ThirdParty/Kenney/Particles";
@@ -25,6 +26,7 @@ namespace Echo.EditorTools
         static readonly Color ExitLight = new Color(0.35f, 1f, 0.6f);
         static readonly Color DangerLight = new Color(1f, 0.3f, 0.25f);
         static readonly Color LampLight = new Color(0.55f, 0.85f, 0.95f);
+        static readonly Color ScannerRed = new Color(1f, 0.25f, 0.2f);
 
         // --- solid level geometry ---------------------------------------------------------------
 
@@ -37,6 +39,14 @@ namespace Echo.EditorTools
             renderer.tileMode = SpriteTileMode.Continuous;
             renderer.size = size;
             renderer.sortingLayerName = "Level";
+            return renderer;
+        }
+
+        /// <summary>The kit's ground panels drawn at the block's size.</summary>
+        public static SpriteRenderer DressBlock(GameObject block, Vector2 size, EnvironmentKit kit)
+        {
+            var renderer = DressBlock(block, size);
+            renderer.sprite = kit.block;
             return renderer;
         }
 
@@ -110,7 +120,7 @@ namespace Echo.EditorTools
         /// <summary>
         /// The city seen through the corridor's windows: a slow parallax strip behind everything.
         /// </summary>
-        public static void FarCity(Transform parent, float xMin, float xMax, float floorY)
+        public static void FarCity(Transform parent, float xMin, float xMax, float floorY, bool parallax = true)
         {
             var go = new GameObject("FarCity");
             go.transform.SetParent(parent, false);
@@ -127,7 +137,8 @@ namespace Echo.EditorTools
             renderer.sortingLayerName = "Background";
             renderer.sortingOrder = 0;
 
-            SetParallax(go.AddComponent<ParallaxLayer>(), new Vector2(0.85f, 0.1f));
+            if (parallax)
+                SetParallax(go.AddComponent<ParallaxLayer>(), new Vector2(0.85f, 0.1f));
         }
 
         /// <summary>
@@ -162,6 +173,157 @@ namespace Echo.EditorTools
             fadeRenderer.sortingOrder = 3;
         }
 
+        // --- kit backdrops (any biome) ------------------------------------------------------------
+
+        /// <summary>The kit's wall pieces laid left to right from xMin to xMax, bottoms at floorY.</summary>
+        public static void WallStrip(EnvironmentKit kit, Transform parent, float xMin, float xMax, float floorY, int order = 1)
+        {
+            var root = new GameObject("Walls").transform;
+            root.SetParent(parent, false);
+            float x = xMin;
+            for (int i = 0; x < xMax; i++)
+            {
+                var sprite = kit.backdrop[i % kit.backdrop.Length];
+                float width = sprite.bounds.size.x;
+                var piece = PlaceBottom(root, sprite.name, sprite, new Vector2(x + width * 0.5f, floorY), "Background", order);
+                piece.GetComponent<SpriteRenderer>().color = kit.backdropTint;
+                x += width;
+            }
+        }
+
+        /// <summary>
+        /// Security wing: steel bulkheads, cables and a robot arm hanging in front, and red
+        /// scanners along the ceiling.
+        /// </summary>
+        public static void SecurityHall(EnvironmentKit kit, Transform parent, float xMin, float xMax, float floorY)
+        {
+            WallStrip(kit, parent, xMin, xMax, floorY);
+            float wallTop = floorY + kit.backdrop[0].bounds.size.y;
+
+            var cables = AssetDatabase.LoadAssetAtPath<Sprite>($"{Security}/Bulkhead_foreground.png");
+            if (cables != null)
+            {
+                var go = new GameObject("HangingCables");
+                go.transform.SetParent(parent, false);
+                float height = cables.bounds.size.y;
+                float pivotY = cables.pivot.y / cables.rect.height;
+                go.transform.position = new Vector3((xMin + xMax) * 0.5f, wallTop - height + height * pivotY, 0f);
+                var renderer = go.AddComponent<SpriteRenderer>();
+                renderer.sprite = cables;
+                renderer.drawMode = SpriteDrawMode.Tiled;
+                renderer.size = new Vector2(xMax - xMin, height);
+                renderer.color = new Color(0.55f, 0.6f, 0.68f); // between the wall and the level
+                renderer.sortingLayerName = "Midground";
+                renderer.sortingOrder = -5;
+            }
+
+            for (float x = xMin + 4f; x < xMax - 2f; x += 9f)
+                Scanner(parent, x, wallTop - 0.4f, floorY);
+        }
+
+        /// <summary>A ceiling scanner: red lens, a faint beam and a red light that pulses.</summary>
+        public static void Scanner(Transform parent, float x, float y, float floorY)
+        {
+            var go = new GameObject("Scanner");
+            go.transform.SetParent(parent, false);
+            go.transform.position = new Vector3(x, y, 0f);
+            var lamp = go.AddComponent<SpriteRenderer>();
+            lamp.sprite = EchoArtFactory.LoadSprite($"{Pixel}/Security/ScannerLamp.png");
+            lamp.sortingLayerName = "Midground";
+
+            // A soft glow stretched down from the lens: light, not a solid laser.
+            var beamSprite = EchoArtFactory.LoadSprite($"{Particles}/light_01.png");
+            var beam = new GameObject("Beam");
+            beam.transform.SetParent(go.transform, false);
+            float length = Mathf.Max(1f, y - floorY);
+            beam.transform.localPosition = new Vector3(0f, -length * 0.45f, 0f);
+            beam.transform.localScale = new Vector3(1.6f / beamSprite.bounds.size.x, length * 1.1f / beamSprite.bounds.size.y, 1f);
+            var beamRenderer = beam.AddComponent<SpriteRenderer>();
+            beamRenderer.sprite = beamSprite;
+            beamRenderer.sharedMaterial = EchoArtFactory.SoftGlowMaterial;
+            beamRenderer.color = new Color(1f, 0.25f, 0.2f, 0.22f);
+            beamRenderer.sortingLayerName = "Midground";
+            beamRenderer.sortingOrder = -1;
+
+            var lightObject = new GameObject("ScanLight");
+            lightObject.transform.SetParent(go.transform, false);
+            lightObject.transform.localPosition = new Vector3(0f, -1.2f, 0f);
+            AddPointLight(lightObject, ScannerRed, 0.9f, 2.6f);
+            var flicker = lightObject.AddComponent<LightFlicker>();
+            var settings = new SerializedObject(flicker);
+            settings.FindProperty("pulse").floatValue = 0.6f;
+            settings.FindProperty("pulseSpeed").floatValue = 1.6f;
+            settings.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>Energy core: two rows of machinery wall, cyan conduits between, fading up into the dark.</summary>
+        public static void CoreMachinery(EnvironmentKit kit, Transform parent, float xMin, float xMax, float floorY)
+        {
+            float rowHeight = kit.backdrop[0].bounds.size.y;
+            WallStrip(kit, parent, xMin, xMax, floorY);
+            WallStrip(kit, parent, xMin, xMax, floorY + rowHeight);
+
+            for (float x = xMin + 2.5f; x < xMax; x += 6.5f)
+                Conduit(parent, x, floorY, rowHeight * 2f);
+
+            var fade = new GameObject("UpperFade");
+            fade.transform.SetParent(parent, false);
+            fade.transform.position = new Vector3((xMin + xMax) * 0.5f, floorY + rowHeight * 2f - 1.25f + 2f, 0f);
+            fade.transform.localScale = new Vector3(1f, -1f, 1f);
+            var fadeRenderer = fade.AddComponent<SpriteRenderer>();
+            fadeRenderer.sprite = EchoArtFactory.LoadSprite($"{Pixel}/Lab/DepthShade.png");
+            fadeRenderer.drawMode = SpriteDrawMode.Tiled;
+            fadeRenderer.size = new Vector2(xMax - xMin, 4f);
+            fadeRenderer.sortingLayerName = "Background";
+            fadeRenderer.sortingOrder = 3;
+        }
+
+        /// <summary>A vertical energy conduit whose pulses run upward, with a faint cyan light.</summary>
+        public static void Conduit(Transform parent, float x, float bottomY, float height)
+        {
+            var frames = EchoArtFactory.LoadSprites($"{Pixel}/Core/Conduit_{{0:00}}.png", 4);
+            var go = new GameObject("Conduit");
+            go.transform.SetParent(parent, false);
+            go.transform.position = new Vector3(x, bottomY + height * 0.5f, 0f);
+            var renderer = go.AddComponent<SpriteRenderer>();
+            renderer.sprite = frames[0];
+            renderer.drawMode = SpriteDrawMode.Tiled;
+            renderer.size = new Vector2(frames[0].bounds.size.x, height);
+            renderer.sortingLayerName = "Background";
+            renderer.sortingOrder = 2;
+            SetFrames(go.AddComponent<SpriteFlipbook>(), frames, 8f);
+            AddPointLight(go, EnergyLight, 0.35f, 2.2f);
+        }
+
+        /// <summary>
+        /// The Guardian's reactor set into the core's wall, calm (cyan) or overloaded (danger red),
+        /// with its halo and light.
+        /// </summary>
+        public static GameObject Reactor(Transform parent, Vector2 center, bool overload)
+        {
+            var go = new GameObject(overload ? "Reactor_Overload" : "Reactor");
+            go.transform.SetParent(parent, false);
+            go.transform.position = center;
+            var renderer = go.AddComponent<SpriteRenderer>();
+            renderer.sprite = EchoArtFactory.LoadSprite($"{Pixel}/Core/{(overload ? "Reactor_Overload" : "Reactor_Calm")}.png");
+            renderer.sortingLayerName = "Midground";
+
+            Color glow = overload ? DangerLight : EnergyLight;
+            var halo = new GameObject("Halo");
+            halo.transform.SetParent(go.transform, false);
+            halo.transform.localScale = Vector3.one * 5f;
+            var haloRenderer = halo.AddComponent<SpriteRenderer>();
+            haloRenderer.sprite = EchoArtFactory.LoadSprite($"{Particles}/light_01.png");
+            haloRenderer.sharedMaterial = EchoArtFactory.SoftGlowMaterial;
+            haloRenderer.color = new Color(glow.r, glow.g, glow.b, 0.35f);
+            haloRenderer.sortingLayerName = "Midground";
+            haloRenderer.sortingOrder = -1;
+
+            AddPointLight(go, glow, 1.1f, 6f);
+            go.AddComponent<LightFlicker>();
+            return go;
+        }
+
         // --- props and hazards ------------------------------------------------------------------
 
         /// <summary>A lab prop standing on the floor (bottom-centre pivot).</summary>
@@ -175,12 +337,15 @@ namespace Echo.EditorTools
         public static string WarpedProp(string name) => $"{Props}/{name}.png";
 
         /// <summary>A ceiling light fixture: soft glow plus a 2D light, some of them faulty.</summary>
-        public static void CeilingLamp(Transform parent, float x, float y, bool faulty)
+        public static void CeilingLamp(Transform parent, float x, float y, bool faulty) =>
+            CeilingLamp(parent, x, y, faulty, LampLight);
+
+        public static void CeilingLamp(Transform parent, float x, float y, bool faulty, Color color)
         {
             var go = new GameObject("CeilingLamp");
             go.transform.SetParent(parent, false);
             go.transform.position = new Vector3(x, y, 0f);
-            AddPointLight(go, LampLight, 0.55f, 4f);
+            AddPointLight(go, color, 0.55f, 4f);
             var flicker = go.AddComponent<LightFlicker>();
             if (faulty)
             {

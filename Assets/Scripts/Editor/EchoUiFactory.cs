@@ -20,14 +20,14 @@ namespace Echo.EditorTools
     {
         const string UiArt = "Assets/Art/Pixel/UI";
         const string FontPath = "Assets/ThirdParty/Kenney/Fonts/KenneyFuture.ttf";
-        const string GlowPath = "Assets/ThirdParty/Kenney/Particles/light_01.png";
+        internal const string GlowPath = "Assets/ThirdParty/Kenney/Particles/light_01.png";
 
         // Pixel art is 32 px per unit; at 96 reference px per unit every art pixel is 3 UI units,
         // so at 960x540 the UI shares the world's 3x pixel scale.
         const float ReferencePixelsPerUnit = 96f;
         const float Px = 3f;
 
-        static readonly Color Dim = new Color(0.47f, 0.63f, 0.71f);
+        internal static readonly Color Dim = new Color(0.47f, 0.63f, 0.71f);
         static readonly Color TextShadow = new Color(0f, 0.016f, 0.063f, 0.85f);
         static readonly Color Clear = new Color(1f, 1f, 1f, 0f);
 
@@ -233,7 +233,7 @@ namespace Echo.EditorTools
 
             var list = NewRect("List", panel);
             Place(list, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -80f), new Vector2(252f, 200f));
-            string[] names = { "RESUME", "RESTART", "MUSIC: ON", "SOUND FX: ON", "MAIN MENU" };
+            string[] names = { "RESUME", "RESTART", "MUSIC: ON", "EFFECTS: ON", "MAIN MENU" };
             var entries = new MenuButton[names.Length];
             for (int i = 0; i < names.Length; i++)
                 entries[i] = MenuEntry(names[i], list, names[i], new Vector2(0.5f, 1f), new Vector2(0f, -i * 40f), new Vector2(252f, 34f), 18, true);
@@ -332,7 +332,7 @@ namespace Echo.EditorTools
             // Main list.
             var mainPanel = NewRect("MainPanel", content);
             Place(mainPanel, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(56f, -250f), new Vector2(270f, 168f));
-            string[] names = { "PLAY", "MUSIC: ON", "SOUND FX: ON", "CREDITS" };
+            string[] names = { "PLAY", "MUSIC: ON", "EFFECTS: ON", "CREDITS" };
             var entries = new MenuButton[names.Length];
             for (int i = 0; i < names.Length; i++)
                 entries[i] = MenuEntry(names[i], mainPanel, names[i], new Vector2(0f, 1f), new Vector2(0f, -i * 42f), new Vector2(270f, 36f), 20, false);
@@ -363,7 +363,7 @@ namespace Echo.EditorTools
             }
             var backList = NewRect("List", credits);
             Place(backList, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(14f, 10f), new Vector2(170f, 36f));
-            // "RETURN", not "BACK": the K problem again.
+            // "RETURN", not "BACK": in Kenney Future K (and X) look like H, so UI words avoid them.
             var back = MenuEntry("RETURN", backList, "RETURN", new Vector2(0f, 1f), Vector2.zero, new Vector2(170f, 36f), 18, false);
             var backSettings = new SerializedObject(back);
             backSettings.FindProperty("clickSound").enumValueIndex = (int)SfxId.UiBack;
@@ -396,7 +396,7 @@ namespace Echo.EditorTools
         /// A menu entry: invisible hit area, selection bar, chevron and label. Centred entries
         /// (pause menu) keep the label still; left-aligned ones (main menu) nudge it right.
         /// </summary>
-        static MenuButton MenuEntry(string name, RectTransform parent, string text, Vector2 anchor, Vector2 position,
+        internal static MenuButton MenuEntry(string name, RectTransform parent, string text, Vector2 anchor, Vector2 position,
                                     Vector2 size, int fontSize, bool centred)
         {
             var rect = NewRect(name, parent);
@@ -433,7 +433,7 @@ namespace Echo.EditorTools
             return entry;
         }
 
-        static void SetItems(MenuList list, MenuButton[] items)
+        internal static void SetItems(MenuList list, MenuButton[] items)
         {
             var settings = new SerializedObject(list);
             var array = settings.FindProperty("items");
@@ -444,7 +444,7 @@ namespace Echo.EditorTools
         }
 
         /// <summary>A centred, sliced ECHO panel.</summary>
-        static RectTransform NewPanel(string name, RectTransform parent, Vector2 size)
+        internal static RectTransform NewPanel(string name, RectTransform parent, Vector2 size)
         {
             var panel = NewImage(name, parent, UiSprite("Panel"), Color.white);
             panel.type = UnityEngine.UI.Image.Type.Sliced;
@@ -452,7 +452,7 @@ namespace Echo.EditorTools
             return panel.rectTransform;
         }
 
-        static RectTransform CreateCanvas(string name, Transform parent, int sortingOrder)
+        internal static RectTransform CreateCanvas(string name, Transform parent, int sortingOrder)
         {
             var go = new GameObject(name, typeof(RectTransform));
             if (parent != null)
@@ -470,21 +470,21 @@ namespace Echo.EditorTools
             return (RectTransform)go.transform;
         }
 
-        static CanvasGroup Group(RectTransform target)
+        internal static CanvasGroup Group(RectTransform target)
         {
             var group = target.gameObject.AddComponent<CanvasGroup>();
             group.alpha = 0f;
             return group;
         }
 
-        static RectTransform NewRect(string name, Transform parent)
+        internal static RectTransform NewRect(string name, Transform parent)
         {
             var go = new GameObject(name, typeof(RectTransform));
             go.transform.SetParent(parent, false);
             return (RectTransform)go.transform;
         }
 
-        static Image NewImage(string name, Transform parent, Sprite sprite, Color color)
+        internal static Image NewImage(string name, Transform parent, Sprite sprite, Color color)
         {
             var image = NewRect(name, parent).gameObject.AddComponent<Image>();
             image.sprite = sprite;
@@ -493,7 +493,7 @@ namespace Echo.EditorTools
             return image;
         }
 
-        static Text NewLabel(string name, Transform parent, string text, int size, Color color, TextAnchor alignment)
+        internal static Text NewLabel(string name, Transform parent, string text, int size, Color color, TextAnchor alignment)
         {
             var label = NewRect(name, parent).gameObject.AddComponent<Text>();
             label.font = UiFont;
@@ -511,7 +511,7 @@ namespace Echo.EditorTools
             return label;
         }
 
-        static void Place(RectTransform rect, Vector2 anchor, Vector2 pivot, Vector2 position, Vector2 size)
+        internal static void Place(RectTransform rect, Vector2 anchor, Vector2 pivot, Vector2 position, Vector2 size)
         {
             rect.anchorMin = rect.anchorMax = anchor;
             rect.pivot = pivot;
@@ -519,18 +519,18 @@ namespace Echo.EditorTools
             rect.sizeDelta = size;
         }
 
-        static void Stretch(RectTransform rect)
+        internal static void Stretch(RectTransform rect)
         {
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.one;
             rect.offsetMin = rect.offsetMax = Vector2.zero;
         }
 
-        static Sprite UiSprite(string name) => EchoArtFactory.LoadSprite($"{UiArt}/{name}.png");
+        internal static Sprite UiSprite(string name) => EchoArtFactory.LoadSprite($"{UiArt}/{name}.png");
 
-        static Vector2 PixelSize(Sprite sprite) => sprite.rect.size * Px;
+        internal static Vector2 PixelSize(Sprite sprite) => sprite.rect.size * Px;
 
-        static Color WithAlpha(Color color, float alpha)
+        internal static Color WithAlpha(Color color, float alpha)
         {
             color.a = alpha;
             return color;

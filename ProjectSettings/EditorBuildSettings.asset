@@ -12,6 +12,9 @@ EditorBuildSettings:
     path: Assets/Scenes/MainMenu.unity
     guid: bc41dd3c9bc39b24e965968e148e7188
   - enabled: 1
+    path: Assets/Scenes/Presentation/Showcase_Design.unity
+    guid: e2878c2512008664d9b6df0e7108cd9a
+  - enabled: 1
     path: Assets/Scenes/Dev/Sandbox_Movement.unity
     guid: f5ba548b525c7ab4d82aa10b1f42df86
   m_configObjects:

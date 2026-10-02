@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 020e90422bfec624fbbff73afbe321cc, type: 3}
+  m_Name: Lab
+  m_EditorClassIdentifier: Echo::Echo.Visuals.EnvironmentKit
+  biome: 0
+  displayName: ABANDONED LAB
+  description: Dark teal corridors, cryo pods and dead monitors under dim cyan ceiling
+    lights. The city glows through the windows.
+  block: {fileID: 21300000, guid: 2fa44078bf686814c8624749788326d4, type: 3}
+  backdrop:
+  - {fileID: 21300000, guid: d024bb9b83c729546a8869071321686b, type: 3}
+  - {fileID: 21300000, guid: abd161a3c81cc8a4eb8478aa8486da55, type: 3}
+  - {fileID: 21300000, guid: 4ef56c4d72ff5fe449fad9a02113acda, type: 3}
+  - {fileID: 21300000, guid: d024bb9b83c729546a8869071321686b, type: 3}
+  backdropTint: {r: 1, g: 1, b: 1, a: 1}
+  farLayer: {fileID: 21300000, guid: 0ecae3584266d8b43b855fcf98a85ebf, type: 3}
+  farTint: {r: 0.6, g: 0.8, b: 0.95, a: 1}
+  voidColor: {r: 0, g: 0.015686275, b: 0.0627451, a: 1}
+  ambientColor: {r: 0.85, g: 0.93, b: 1, a: 1}
+  ambientIntensity: 0.85
+  lampColor: {r: 0.55, g: 0.85, b: 0.95, a: 1}
+  props:
+  - {fileID: 21300000, guid: 0e6fc60e04404284594b37d13f0a665d, type: 3}
+  - {fileID: 21300000, guid: ca3382bdd4a3ffc40b0e025ec3dd0f2c, type: 3}
+  - {fileID: 21300000, guid: 0f6fa874380265649a4227d0554ef7ea, type: 3}
+  - {fileID: 21300000, guid: 5fc3c0a598d416645ab2a9a8264b5657, type: 3}
+  music: 2

@@ -63,7 +63,7 @@ commercial terms), and anything with a credit-required or unclear license.
 All art is referenced through a few data assets, so any piece can be replaced later without touching gameplay:
 
 - `PlayerVisuals`: animation frames and timing per state
-- `EnvironmentKit` (one per biome): tile sprites, background layers, props, light colors
+- `EnvironmentKit` (one per biome, `Assets/Settings/Visuals/Kits/`): ground tile, backdrop pieces, light and void colors, props, music
 - `VfxLibrary`: every effect prefab by name
 - `AudioLibrary`: every sound and music track by name
 
@@ -112,7 +112,7 @@ Updated 2026-10-02. Rebuild everything with **ECHO > Setup > Apply Visual Overha
 | 3. Level 1 look | Done (movement sandbox) | Lab panel blocks with depth shading, corridor backdrop, city through the windows (parallax), upper machinery, props, flickering ceiling lights, pit warning stripes and red glow, animated energy cells, scrolling barrier fields, dust motes |
 | 4. UI | Done | Pixel UI kit drawn in the lab palette (panel, selection bar, energy cells, icons, ECHO logo), Kenney Future text. Title screen over the lab with the hero at the city window; music and sound switches saved in PlayerPrefs; credits. Energy meter: segmented cells that pop in and flash out, a glow on the cell the next dash uses, a red blink when empty, a shake when a dash is denied. Level title card, pause menu, red death vignette, "sector cleared" card with time, dashes and resets. Fades on every scene load and on respawn. Everything is built in code by `EchoUiFactory` |
 | 5. Audio | Wired, not yet heard in a test | 16 sound effects, 6 music tracks with ambience beds, crossfades; the sandbox plays the Lab track, the menu the Menu track |
-| 6. Biome kits 2–4 | Not started | Security and Core art is imported and recolored, waiting for levels 2–3 |
+| 6. Biome kits 2–4 | Done (kits and showcase; levels 2–3 not built yet) | One `EnvironmentKit` per biome. Security wing: bulkheads recolored from warm brown to cold steel, steel ground tiles, hanging cables, red scanner lights. Energy core: navy machinery walls, animated cyan conduits, navy ground tiles with energy indicators. Guardian's reactor: an ECHO-drawn reactor, calm (cyan) and overloaded (danger red). All four biomes, the hero's animations and the threats are presented in the Phase 3 design showcase (`Showcase_Design`) |
 
 **Verified:**
 - 26/26 automated tests pass (9 EditMode, 17 PlayMode). The 7 new PlayMode tests drive the real
@@ -126,7 +126,11 @@ Updated 2026-10-02. Rebuild everything with **ECHO > Setup > Apply Visual Overha
   a cap on the UI animation timestep); the final build was re-checked in the browser for the menu,
   title card and HUD, and the tweaks themselves are covered by the PlayMode tests.
 - Stills are in `Docs/Screenshots/`. The `ui_*` ones are frames copied straight from the WebGL
-  build's canvas: menu, level title card, pause menu, credits, level complete.
+  build's canvas: menu, level title card, pause menu, credits, level complete. The `design_*` ones
+  are the nine design-showcase slides, rendered in the editor by **ECHO > Tools > Capture Design
+  Showcase Slides**.
+- Kenney Future's K and X look almost like its H, so UI words set in it avoid those letters
+  ("RETURN", "EFFECTS", "WAY OUT"); names and long captions use Unity's built-in font.
 
 **Not yet checked in the browser:**
 - Touch controls and the pause menu on a phone.

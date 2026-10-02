@@ -1,4 +1,5 @@
 using System.IO;
+using Echo.Presentation;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -7,10 +8,11 @@ using UnityEngine.Rendering.Universal;
 namespace Echo.EditorTools
 {
     /// <summary>
-    /// Renders still screenshots of the movement sandbox for docs and presentations (no play mode,
-    /// so effects and animation are not shown). Output: Docs/Screenshots/.
+    /// Renders still screenshots of the movement sandbox and the design showcase for docs and
+    /// presentations (no play mode, so effects and animation are not shown). Output: Docs/Screenshots/.
     /// Headless (needs a graphics device, so no -nographics):
     /// -batchmode -quit -executeMethod Echo.EditorTools.EchoCapture.CaptureSandbox
+    /// -batchmode -quit -executeMethod Echo.EditorTools.EchoCapture.CaptureShowcase
     /// </summary>
     public static class EchoCapture
     {
@@ -65,6 +67,56 @@ namespace Echo.EditorTools
             Object.DestroyImmediate(target);
             if (pixelPerfect != null)
                 pixelPerfect.enabled = true;
+        }
+
+        /// <summary>One still per design-showcase slide (world and interface): design_01.png onward.</summary>
+        [MenuItem("ECHO/Tools/Capture Design Showcase Slides")]
+        public static void CaptureShowcase()
+        {
+            if (!Application.isBatchMode && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+                return;
+
+            EditorSceneManager.OpenScene(EchoShowcaseFactory.ScenePath, OpenSceneMode.Single);
+            var camera = Camera.main;
+            var showcase = Object.FindFirstObjectByType<DesignShowcase>();
+            Directory.CreateDirectory(OutputFolder);
+
+            var pixelPerfect = camera.GetComponent<PixelPerfectCamera>();
+            if (pixelPerfect != null)
+                pixelPerfect.enabled = false;
+
+            // Overlay canvases never reach a render texture, so the interface is drawn through the
+            // camera for the capture (the scene is not saved).
+            var canvas = showcase.GetComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceCamera;
+            canvas.worldCamera = camera;
+            canvas.planeDistance = 1f;
+            canvas.sortingLayerName = "Foreground"; // above every sprite, as the overlay is in game
+            canvas.sortingOrder = 1000;
+
+            var target = new RenderTexture(Width, Height, 24, RenderTextureFormat.ARGB32);
+            camera.targetTexture = target;
+
+            for (int i = 0; i < showcase.SlideCount; i++)
+            {
+                showcase.Jump(i);
+                Canvas.ForceUpdateCanvases();
+                camera.Render();
+
+                RenderTexture.active = target;
+                var image = new Texture2D(Width, Height, TextureFormat.RGB24, false);
+                image.ReadPixels(new Rect(0, 0, Width, Height), 0, 0);
+                image.Apply();
+                RenderTexture.active = null;
+
+                string path = $"{OutputFolder}/design_{i + 1:00}.png";
+                File.WriteAllBytes(path, image.EncodeToPNG());
+                Object.DestroyImmediate(image);
+                Debug.Log($"[ECHO Capture] {path}");
+            }
+
+            camera.targetTexture = null;
+            Object.DestroyImmediate(target);
         }
     }
 }

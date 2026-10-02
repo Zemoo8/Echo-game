@@ -26,6 +26,7 @@ namespace Echo.EditorTools
             EnsureScene(BootPath, BuildBoot, false);
             EnsureScene(MainMenuPath, BuildMainMenu, false);
             EnsureScene(SandboxPath, BuildSandbox, false);
+            EchoShowcaseFactory.Ensure();
         }
 
         [MenuItem("ECHO/Setup/Rebuild Movement Sandbox")]
@@ -47,7 +48,7 @@ namespace Echo.EditorTools
             EnsureScene(MainMenuPath, BuildMainMenu, true);
         }
 
-        static void EnsureScene(string path, System.Action populate, bool rebuild)
+        public static void EnsureScene(string path, System.Action populate, bool rebuild)
         {
             if (!rebuild && AssetDatabase.LoadAssetAtPath<SceneAsset>(path) != null)
                 return;
