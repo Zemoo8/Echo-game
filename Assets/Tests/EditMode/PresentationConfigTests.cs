@@ -58,6 +58,30 @@ namespace Echo.Tests
         }
 
         [Test]
+        public void EachPhaseLeadsOnlyIntoTheLevelsItPresents()
+        {
+            var serialized = new SerializedObject(config);
+            serialized.FindProperty("phase").intValue = (int)PresentationPhase.Development;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            PresentationMode.Override(config);
+            try
+            {
+                Assert.IsTrue(PresentationMode.IsSceneEnabled(SceneNames.Level2));
+                Assert.IsFalse(PresentationMode.IsSceneEnabled(SceneNames.Level3), "Phase 4 ends after Level 2");
+                Assert.IsTrue(PresentationMode.IsSceneEnabled(SceneNames.MainMenu), "menus belong to every phase");
+
+                serialized.FindProperty("phase").intValue = (int)PresentationPhase.Animation2D;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+                Assert.IsTrue(PresentationMode.IsSceneEnabled(SceneNames.Level3), "Phase 5 adds Level 3");
+                Assert.IsFalse(PresentationMode.IsSceneEnabled(SceneNames.Boss));
+            }
+            finally
+            {
+                PresentationMode.Override(null);
+            }
+        }
+
+        [Test]
         public void ForceOverridesWinOverThePhase()
         {
             var serialized = new SerializedObject(config);

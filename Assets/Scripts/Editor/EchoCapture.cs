@@ -41,6 +41,13 @@ namespace Echo.EditorTools
             new Vector2(132f, 2.5f),
         };
 
+        // Level 3: first plate bridge, the first core lock, lasers, the rising bridge under the reactor, the full-meter lock.
+        static readonly Vector2[] Level3Shots =
+        {
+            new Vector2(26f, 2.5f), new Vector2(58f, 2.5f), new Vector2(94f, 2.5f), new Vector2(125f, 3f),
+            new Vector2(170f, 2.5f),
+        };
+
         [MenuItem("ECHO/Tools/Capture Sandbox Screenshots")]
         public static void CaptureSandbox() => CaptureWorld(EchoSceneFactory.SandboxPath, SandboxShots, "sandbox_");
 
@@ -49,6 +56,9 @@ namespace Echo.EditorTools
 
         [MenuItem("ECHO/Tools/Capture Level 2 Screenshots")]
         public static void CaptureLevel2() => CaptureWorld(EchoLevelFactory.Level2Path, Level2Shots, "level2_");
+
+        [MenuItem("ECHO/Tools/Capture Level 3 Screenshots")]
+        public static void CaptureLevel3() => CaptureWorld(EchoLevelFactory.Level3Path, Level3Shots, "level3_");
 
         static void CaptureWorld(string scenePath, Vector2[] shots, string prefix)
         {

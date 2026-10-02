@@ -18,6 +18,8 @@ namespace Echo.Gameplay
         Drones,
         Turrets,
         Consoles,
+        Plates,
+        ChargeLocks,
     }
 
     /// <summary>

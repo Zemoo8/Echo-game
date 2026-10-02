@@ -104,6 +104,27 @@ namespace Echo.Presentation
 
         public static bool IsEnabled(Feature feature) => (Config.EnabledFeatures & feature) == feature;
 
+        /// <summary>The content feature a scene belongs to; None for scenes every phase may load.</summary>
+        public static Feature FeatureForScene(string scene)
+        {
+            switch (scene)
+            {
+                case SceneNames.Level1: return Feature.Level1;
+                case SceneNames.Level2: return Feature.Level2;
+                case SceneNames.Level3: return Feature.Level3;
+                case SceneNames.Boss: return Feature.Boss;
+                case SceneNames.Ending: return Feature.Ending;
+                default: return Feature.None;
+            }
+        }
+
+        /// <summary>False for a level the active phase doesn't present yet (Phase 4 ends after Level 2).</summary>
+        public static bool IsSceneEnabled(string scene)
+        {
+            var feature = FeatureForScene(scene);
+            return feature == Feature.None || IsEnabled(feature);
+        }
+
         /// <summary>Use a specific config instead of the Resources one (automated tests and tools).</summary>
         public static void Override(PresentationConfig overrideConfig) => config = overrideConfig;
 

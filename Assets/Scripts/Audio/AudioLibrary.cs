@@ -28,6 +28,11 @@ namespace Echo.Audio
         TurretShot,
         ConsoleUsed,
         DoorOpen,
+        PlateCrack,
+        PlateBreak,
+        LockOpen,
+        LockClose,
+        LockRefused,
     }
 
     /// <summary>Music tracks and ambience beds, by name.</summary>

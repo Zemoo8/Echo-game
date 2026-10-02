@@ -67,6 +67,7 @@ namespace Echo.EditorTools
             EchoShowcaseFactory.Rebuild();
             EchoLevelFactory.RebuildLevel1();
             EchoLevelFactory.RebuildLevel2();
+            EchoLevelFactory.RebuildLevel3();
             AssetDatabase.SaveAssets();
             Debug.Log("[ECHO Art] Visual overhaul applied.");
         }
@@ -344,6 +345,17 @@ namespace Echo.EditorTools
                         .Colors(Alpha(danger, 0.8f), Alpha(danger, 0.8f)).Fade();
                 }, pixel),
 
+                Effect(VfxId.PlateCrumble, root =>
+                {
+                    // A cracked core plate falls apart: steel-blue chunks drop into the abyss with a faint energy puff.
+                    var plate = new Color(0.55f, 0.63f, 1f);
+                    var plateDark = new Color(0.16f, 0.21f, 0.4f);
+                    root.Burst(18).Life(0.5f, 0.9f).Speed(0.5f, 2.5f).Size(0.0625f, 0.16f).Colors(plate, plateDark)
+                        .Arc(1.2f, 140f, -90f).Gravity(2.2f).Shrink();
+                    new EchoFx("Flash", root.Transform, soft).Burst(1).Life(0.2f, 0.2f).Size(2.4f, 2.4f)
+                        .Colors(Alpha(energy, 0.45f), Alpha(energy, 0.45f)).Fade();
+                }, pixel),
+
                 Effect(VfxId.Victory, root =>
                 {
                     root.Burst(30).Life(0.8f, 1.2f).Speed(3f, 7f).Size(0.0625f, 0.156f).Colors(exit, energyLight)
@@ -406,6 +418,11 @@ namespace Echo.EditorTools
                 Sound(SfxId.TurretShot, 0.35f, 0.08f, 0.05f, "laserLarge_000"),
                 Sound(SfxId.ConsoleUsed, 0.55f, 0f, 0f, "switch_005"),
                 Sound(SfxId.DoorOpen, 0.6f, 0f, 0f, "doorOpen_001"),
+                Sound(SfxId.PlateCrack, 0.4f, 0.1f, 0.05f, "impactMetal_002"),
+                Sound(SfxId.PlateBreak, 0.55f, 0.08f, 0f, "impactPunch_medium_000"),
+                Sound(SfxId.LockOpen, 0.55f, 0f, 0f, "forceField_002"),
+                Sound(SfxId.LockClose, 0.45f, 0f, 0f, "forceField_004"),
+                Sound(SfxId.LockRefused, 0.45f, 0f, 0f, "glitch_002"),
             };
 
             library.tracks = new[]

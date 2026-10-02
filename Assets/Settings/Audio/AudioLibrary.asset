@@ -150,6 +150,36 @@ MonoBehaviour:
     volume: 0.6
     pitchJitter: 0
     cooldown: 0
+  - id: 22
+    variations:
+    - {fileID: 8300000, guid: 617c996a630553149a01aa4e9bc5bfbc, type: 3}
+    volume: 0.4
+    pitchJitter: 0.1
+    cooldown: 0.05
+  - id: 23
+    variations:
+    - {fileID: 8300000, guid: c69550ea65d7b79448b28b4f3dab5cb1, type: 3}
+    volume: 0.55
+    pitchJitter: 0.08
+    cooldown: 0
+  - id: 24
+    variations:
+    - {fileID: 8300000, guid: 79f0f2275b52d4f468ea683edcec24c5, type: 3}
+    volume: 0.55
+    pitchJitter: 0
+    cooldown: 0
+  - id: 25
+    variations:
+    - {fileID: 8300000, guid: c35b97f84e6e40f45bae566e8853bf8a, type: 3}
+    volume: 0.45
+    pitchJitter: 0
+    cooldown: 0
+  - id: 26
+    variations:
+    - {fileID: 8300000, guid: 15ff6717a836fd943a25de61cd09cccd, type: 3}
+    volume: 0.45
+    pitchJitter: 0
+    cooldown: 0
   tracks:
   - id: 1
     music: {fileID: 8300000, guid: 4670141aba53dea4493f45187f8bab4d, type: 3}

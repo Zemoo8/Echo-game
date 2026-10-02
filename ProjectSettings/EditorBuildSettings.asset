@@ -18,6 +18,9 @@ EditorBuildSettings:
     path: Assets/Scenes/Levels/Level2_Facility.unity
     guid: 74458534326ee454b8e53be7739bc469
   - enabled: 1
+    path: Assets/Scenes/Levels/Level3_Core.unity
+    guid: ea2379af3db816e4f88877bd53ef991f
+  - enabled: 1
     path: Assets/Scenes/Presentation/Showcase_Design.unity
     guid: e2878c2512008664d9b6df0e7108cd9a
   - enabled: 1

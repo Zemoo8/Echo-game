@@ -363,7 +363,7 @@ namespace Echo.EditorTools
                     "Recolored from Ansimuz's Warped City hero: a white jacket with cool shading (yellow would read as danger), magenta hair and a cyan accent. Squash and stretch on every jump and landing.",
                     HeroX, lab, MusicId.Lab, heroLabels, 0f),
                 new SlideData("GAMEPLAY OBJECTS", "THREATS AND TOOLS",
-                    "Danger is always warm: pits glow red and enemy eyes burn red. Energy cells and the barriers a dash breaks are cyan; the exit door is green. The drone and turret are designed but not yet placed in a level.",
+                    "Danger is always warm: pits glow red and enemy eyes burn red. Energy cells and the barriers a dash breaks are cyan; the exit door is green. Drones and turrets guard the security wing, and a dash destroys them.",
                     ThreatsX, lab, MusicId.Lab, threatLabels, 0f),
                 new SlideData("SECTOR 1", lab.displayName, lab.description, LabX, lab, lab.music, null, 0f),
                 new SlideData("SECTOR 2", security.displayName, security.description, SecurityX, security, security.music, null, 0f),

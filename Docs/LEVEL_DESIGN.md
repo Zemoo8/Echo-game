@@ -3,8 +3,9 @@
 **Every dash is a decision.** A dash costs one energy charge, and every level ends with a door
 that only a dash can break, so the player always has to keep a charge in reserve.
 
-Levels are built in code by `EchoLevelFactory` (**ECHO > Setup > Rebuild Level 1**); this document
-explains what each section is for. Stills: `Docs/Screenshots/level1_*.png`.
+Levels are built in code by `EchoLevelFactory` (**ECHO > Setup > Rebuild Level 1 / 2 / 3**); this
+document explains what each section is for. Stills: `Docs/Screenshots/level1_*.png`, `level2_*.png`
+and `level3_*.png`.
 
 ## Movement metrics
 
@@ -75,7 +76,38 @@ originally stood 2 units before a pit (jumping it landed in the pit), and the ex
 flew across the second pit, punishing anyone lining up the jump. The turret moved back, and a
 cover wall now stops the bolts before the pit.
 
-## Machines and consoles
+## Level 3 · Energy Core
+
+Deep navy machinery around the reactor. Start with **0 charges** (max 3). The level adds two ideas:
+cracked plates that don't let the player stand still, and **core locks** that only open while
+the player *holds* enough charge, so a dash spent on the way can lock the way ahead.
+
+| # | x | Section | Teaches | Hint |
+|---|---|---------|---------|------|
+| 1 | −3 → 18 | Entry hall, a cell | | |
+| 2 | 18 → 39 | Three cracked plates over the abyss (3 wide, 3-unit gaps); a cell above the middle one | Plates give way 0.5 s after you land: keep moving | "Cracked plates give way a moment after you land. Keep moving." |
+| 3 | 42 | **Checkpoint 1** | | |
+| 4 | 46 → 64 | Cell, a drone, cell, then a core lock that needs **2** | Jump the drone: dashing through it spends a charge the lock needs | "A core lock opens only while you hold enough charge…" |
+| 5 | 70 → 78 | 8-unit pit | Jump + air dash | |
+| 6 | 81 | **Checkpoint 2** | | |
+| 7 | 90, 95 | Two lasers (1.4 s on, 1.2 s off, out of step); a cell | | |
+| 8 | 112 → 140 | A rising bridge of four plates (heights 0.8, 1.6, 1.6, 0.8) under the reactor | Plates and height together | |
+| 9 | 143, 146 | **Checkpoint 3**, a cell | | |
+| 10 | 150 → 158 | 8-unit pit | Spend a charge… | |
+| 11 | 161 → 175 | Three cells (one on a ledge), then a core lock that needs a **full meter (3)** | …then fill the meter again before the lock | |
+| 12 | 179 → 187 | 8-unit pit | | "The exit only opens to a dash. Keep one charge for it." |
+| 13 | 190 → 202 | Cover, a turret, the exit door | As in Level 2 | "No charge left…" if empty |
+
+**Never stuck.** Each lock can be filled from the checkpoint before it: two cells wait between
+checkpoint 1 and the first lock, and between checkpoint 3 and the second lock there is a cell
+before the pit (so the pit can always be crossed) and three after it. A player who wastes charges
+can press **R** and try the room again with its cells back.
+
+**Energy budget.** The route needs 3 dashes (pits at 70, 150 and 179) plus the exit, and the locks
+need 2 and 3 held. Arriving at the second lock with a full meter leaves exactly one spare charge
+after the last pit and the exit.
+
+## Machines, consoles and core devices
 
 | Thing | Behaviour | Read as |
 |-------|-----------|---------|
@@ -84,9 +116,11 @@ cover wall now stops the bolts before the pit.
 | **Dash vs machines** | A dash destroys a drone or a turret (and passes through bolts), costing the charge it used | The core trade: energy for safety |
 | Console | Walk into it: its screen turns from red to green and it opens a shutter or switches lasers off | Red screen = locked, green = done |
 | Security shutter | Blocks the way and stops bolts until its console is used | Steel slats with a red lock light |
+| Cracked plate | Holds until stood on; flashes and shakes, gives way 0.5 s later, re-forms 2.5 s after (never inside the player) | Navy plate with ember cracks that flare orange |
+| Core lock | Solid while the player holds fewer charges than its lights; reads the meter live, so spending a charge closes it again, but never on a player inside it. A dash doesn't break it | Steel-blue field (not cyan: it isn't a barrier) with a panel of charge lights; the missing ones blink when you walk up to it |
 
 Checkpoints treat machines and consoles like cells and barriers: anything destroyed or used
-after the last checkpoint comes back when the player respawns.
+after the last checkpoint comes back when the player respawns. Broken plates always come back.
 
 ## Checkpoints
 
@@ -113,3 +147,13 @@ death brings it back; touching a drone kills; a console opens the shutter and a 
 and the same **bot plays Level 2 to the exit** (16–27 s; its crude timing against moving
 machines sometimes costs it a death or two, and it always finishes). The bot lives in
 `Assets/Tests/PlayMode/LevelBot.cs`.
+
+`Assets/Tests/PlayMode/Level3Tests.cs`: the level has its pieces; a plate cracks under the player,
+gives way and re-forms; falling through one kills and the respawn restores it; a core lock opens
+only with enough charge, stays open while the player is inside, and closes again behind them; and
+the bot **plays Level 3 to the exit** without being taught about plates or locks (about 26 s; it
+jumps every gap, so the plates never catch it, and it never wastes a charge, so the locks open).
+
+`Assets/Tests/EditMode/PresentationConfigTests.cs` checks that each presentation phase leads only
+into the levels it presents: in Phase 4 the end of Level 2 goes back to the menu, in Phase 5 it
+leads into Level 3.

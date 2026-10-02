@@ -153,6 +153,10 @@ namespace Echo.UI
                     return "Turrets fire on a rhythm. Jump the shots, or dash into one to destroy it.";
                 case HintId.Consoles:
                     return "Walk into a console to use it. Green means it worked.";
+                case HintId.Plates:
+                    return "Cracked plates give way a moment after you land. Keep moving.";
+                case HintId.ChargeLocks:
+                    return "A core lock opens only while you hold enough charge: one light per charge. Don't spend them on the way.";
                 case HintId.OutOfEnergy:
                     return Pick("No charge left. Press R to go back to the last checkpoint.",
                                 "No charge left. Press Select to go back to the last checkpoint.",

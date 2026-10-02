@@ -579,6 +579,95 @@ def security_platform():
     save(img, "Security", "SecurityPlatform.png")
 
 
+CORE_EDGE = hexc("8EA2FF")
+CORE_LIP = hexc("4A63A8")
+CORE_BODY = hexc("141B33")
+CORE_BODY_LIGHT = hexc("1A2340")
+CORE_SEAM = hexc("0C1124")
+CORE_DEEP = hexc("080C1C")
+CRACK_EMBER = hexc("7A2E1E")   # calm cracks: a dim warm glow, since warm means danger
+CRACK_HOT = DANGER
+CRACK_HOT_LIGHT = hexc("FFD0C0")
+
+# Crack paths across the plate body as (x, y) pixels, one per side border and one in the tiled middle.
+PLATE_CRACKS = [
+    [(9, 1), (9, 2), (10, 3), (10, 4), (11, 5), (10, 6), (10, 7), (11, 8)],
+    [(22, 1), (23, 2), (23, 3), (22, 4), (22, 5), (23, 6), (24, 7), (24, 8), (25, 4), (26, 5)],
+    [(38, 1), (37, 2), (37, 3), (38, 4), (38, 5), (37, 6), (36, 7), (36, 8)],
+]
+
+
+def unstable_platform(hot):
+    """48x16 cracked core plate (sliced with 16 px side borders). Calm: dim ember cracks in the
+    navy plate. Hot (flashed while it gives way): the cracks flare danger orange."""
+    img = Image.new("RGBA", (48, 16), CLEAR)
+    px = img.load()
+    for x in range(48):
+        px[x, 0], px[x, 1] = CORE_EDGE, CORE_LIP
+        for y in range(2, 9):
+            px[x, y] = CORE_BODY_LIGHT if (x + 2 * y) % 5 == 0 else CORE_BODY
+        px[x, 9] = CORE_SEAM
+        if x % 16 in (6, 7, 8, 9):  # hanging keel under each section
+            for y in range(10, 13):
+                px[x, y] = CORE_DEEP if y < 12 else CORE_SEAM
+    for x in (0, 47):
+        for y in range(0, 10):
+            px[x, y] = CORE_DEEP
+    for crack in PLATE_CRACKS:
+        for x, y in crack:
+            px[x, y] = CRACK_HOT if hot else CRACK_EMBER
+            if hot and y in (3, 4, 5):
+                px[x, y] = CRACK_HOT_LIGHT
+        top_x = crack[0][0]
+        px[top_x, 0] = CRACK_HOT if hot else CRACK_EMBER  # the crack nicks the top edge
+    save(img, "Core", "UnstableGlowPlatform.png" if hot else "UnstablePlatform.png")
+
+
+def lock_emitter():
+    """24x8 metal emitter cap for a core lock: like the barrier emitter, with a steel-blue lens."""
+    img = Image.new("RGBA", (24, 8), CLEAR)
+    px = img.load()
+    for x in range(24):
+        for y in range(8):
+            px[x, y] = METAL_LIGHT if y == 0 else METAL if y < 6 else METAL_DARK
+    for x in range(8, 16):
+        px[x, 6], px[x, 7] = CORE_EDGE, WHITE
+    for x in (0, 23):
+        for y in range(8):
+            px[x, y] = VOID
+    save(img, "Energy", "LockEmitter.png")
+
+
+def lock_lights():
+    """Core lock readout: a 12 px wide metal housing with 1-3 slots, and 8x8 charge lights
+    (empty slot, or energy cyan for a charge the player holds)."""
+    for slots in (1, 2, 3):
+        height = 2 + 10 * slots
+        img = Image.new("RGBA", (12, height), METAL)
+        px = img.load()
+        for y in range(height):
+            px[0, y], px[11, y] = METAL_LIGHT, METAL_DARK
+        for x in range(12):
+            px[x, 0], px[x, height - 1] = METAL_LIGHT, METAL_DARK
+        for i in range(slots):
+            top = 2 + 10 * i
+            for y in range(top, top + 8):
+                for x in range(2, 10):
+                    px[x, y] = VOID
+        save(img, "Gameplay", f"LockPanel_{slots}.png")
+
+    for name, fill, core, edge in (("LockLight_Off", CELL_EMPTY_FILL, CELL_EMPTY_FILL, CELL_EMPTY_EDGE),
+                                   ("LockLight_On", ENERGY, ENERGY_LIGHT, ENERGY_DEEP)):
+        img = Image.new("RGBA", (8, 8), CLEAR)
+        px = img.load()
+        for y in range(8):
+            for x in range(8):
+                border = x in (0, 7) or y in (0, 7)
+                inner = 2 <= x <= 5 and 2 <= y <= 5
+                px[x, y] = edge if border else core if inner and name.endswith("On") else fill
+        save(img, "Gameplay", f"{name}.png")
+
+
 if __name__ == "__main__":
     lab_block()
     lab_platform()
@@ -608,4 +697,10 @@ if __name__ == "__main__":
     console()
     shutter()
     security_platform()
+    unstable_platform(False)
+    unstable_platform(True)
+    for i in range(4):
+        barrier_field(i, base=CORE_EDGE, light=WHITE, name="LockField")
+    lock_emitter()
+    lock_lights()
     print("Wrote ECHO pixel art to", os.path.abspath(OUT))

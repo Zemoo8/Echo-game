@@ -20,6 +20,7 @@ namespace Echo.EditorTools
     {
         public static string Level1Path => $"{ScenesFolder}/Levels/{SceneNames.Level1}.unity";
         public static string Level2Path => $"{ScenesFolder}/Levels/{SceneNames.Level2}.unity";
+        public static string Level3Path => $"{ScenesFolder}/Levels/{SceneNames.Level3}.unity";
 
         const float WallTop = 14f;
         const float Bottom = -4f;
@@ -43,10 +44,20 @@ namespace Echo.EditorTools
             EchoProjectSetup.SetupBuildScenes();
         }
 
+        [MenuItem("ECHO/Setup/Rebuild Level 3")]
+        public static void RebuildLevel3()
+        {
+            if (!Application.isBatchMode && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+                return;
+            EnsureScene(Level3Path, BuildLevel3, true);
+            EchoProjectSetup.SetupBuildScenes();
+        }
+
         public static void EnsureAll()
         {
             EnsureScene(Level1Path, BuildLevel1, false);
             EnsureScene(Level2Path, BuildLevel2, false);
+            EnsureScene(Level3Path, BuildLevel3, false);
         }
 
         // Level 1 · Awakening (abandoned lab). Floor tops: 0 unless noted. Left to right:
@@ -246,6 +257,221 @@ namespace Echo.EditorTools
 
             Finish(level, camera, new Vector2(2f, 1f), new Rect(-4f, Bottom, 153f, 16f),
                    "SECTOR 02", "SECURITY WING", 1, 3, SceneNames.Level3);
+        }
+
+        // Level 3 · Energy Core. Floor tops 0 unless noted. Left to right:
+        //   a bridge of cracked plates over the abyss · checkpoint · a core lock that needs 2 held
+        //   charges, with a drone between its two cells (jump it: a dash spends a charge the lock
+        //   needs) · 8-unit pit · checkpoint · two lasers · a rising bridge of plates · checkpoint ·
+        //   cell · 8-unit pit · three cells (one on a ledge) · a core lock that needs a full meter ·
+        //   8-unit pit · cover · a turret guarding the exit door. Start with 0 energy, max 3.
+        // Every lock can be filled from the checkpoint before it, so returning there (R) never
+        // leaves the player stuck.
+        static void BuildLevel3()
+        {
+            var kit = EchoArtFactory.LoadKit(Biome.Core);
+            var camera = CreateCamera(kit.voidColor);
+            DisableCameraRoll(camera.gameObject.AddComponent<CameraFeedback>());
+            EchoLevelArt.DustMotes(camera.transform);
+            EchoLevelArt.CreateGlobalLight(kit.ambientIntensity, kit.ambientColor);
+            var sceneAudio = new GameObject("SceneAudio").AddComponent<SceneAudio>();
+            SetEnum(sceneAudio, "music", (int)MusicId.Core);
+
+            var level = new GameObject("Level");
+            var geometry = Child("Geometry", level.transform);
+            var plates = Child("Plates", level.transform);
+            var pickups = Child("Pickups", level.transform);
+            var barriers = Child("Barriers", level.transform);
+            var hazards = Child("Hazards", level.transform);
+            var machines = Child("Machines", level.transform);
+            var locks = Child("Locks", level.transform);
+            var checkpoints = Child("Checkpoints", level.transform);
+            var hints = Child("Hints", level.transform);
+            var backdrop = Child("Backdrop", level.transform);
+            var props = Child("Props", level.transform);
+            var lights = Child("Lights", level.transform);
+
+            // --- ground ----------------------------------------------------------------------
+            KitBlock(geometry, kit, "Wall_Left", -4f, Bottom, -3f, WallTop);
+            KitGround(geometry, kit, "Floor_Entry", -3f, 18f, 0f);
+            KitGround(geometry, kit, "Floor_Lock1", 39f, 70f, 0f);             // abyss 18..39
+            KitBlock(geometry, kit, "Doorway_Lock1", 63.4f, CeilingY, 64.6f, WallTop);
+            KitGround(geometry, kit, "Floor_Lasers", 78f, 112f, 0f);           // pit 70..78
+            KitBlock(geometry, kit, "Doorway_Laser_1", 89.4f, CeilingY, 90.6f, WallTop);
+            KitBlock(geometry, kit, "Doorway_Laser_2", 94.4f, CeilingY, 95.6f, WallTop);
+            KitGround(geometry, kit, "Floor_Reactor", 140f, 150f, 0f);         // abyss 112..140
+            KitGround(geometry, kit, "Floor_Lock2", 158f, 179f, 0f);           // pit 150..158
+            KitBlock(geometry, kit, "Ledge", 164f, 0f, 167f, 1.6f);
+            KitBlock(geometry, kit, "Doorway_Lock2", 174.4f, CeilingY, 175.6f, WallTop);
+            KitGround(geometry, kit, "Floor_Exit", 187f, 208f, 0f);            // pit 179..187
+            KitBlock(geometry, kit, "Cover_Exit", 190f, 0f, 191f, 1.6f);
+            KitBlock(geometry, kit, "Doorway_Exit", 199f, CeilingY, 205f, WallTop);
+            KitBlock(geometry, kit, "Wall_Right", 208f, Bottom, 209f, WallTop);
+
+            // Cracked plates, 3 wide with 3-unit gaps: an easy hop each, no time to stand still.
+            UnstablePlate(plates, 21f, 24f, 0f);
+            UnstablePlate(plates, 27f, 30f, 0f);
+            UnstablePlate(plates, 33f, 36f, 0f);
+            UnstablePlate(plates, 115f, 118f, 0.8f);
+            UnstablePlate(plates, 121f, 124f, 1.6f);
+            UnstablePlate(plates, 127f, 130f, 1.6f);
+            UnstablePlate(plates, 133f, 136f, 0.8f);
+
+            EchoLevelArt.Pit(level.transform, 18f, 39f, 0f, Bottom);
+            EchoLevelArt.Pit(level.transform, 70f, 78f, 0f, Bottom);
+            EchoLevelArt.Pit(level.transform, 112f, 140f, 0f, Bottom);
+            EchoLevelArt.Pit(level.transform, 150f, 158f, 0f, Bottom);
+            EchoLevelArt.Pit(level.transform, 179f, 187f, 0f, Bottom);
+            KillZone(level.transform, 102f, -9f, 230f);
+
+            // --- the run ---------------------------------------------------------------------
+            Pickup(pickups, 9f, 1f);
+            Pickup(pickups, 28.5f, 2.4f);      // over the middle plate, taken mid-jump
+            Pickup(pickups, 46f, 1f);
+            Pickup(pickups, 60f, 1f);
+            Pickup(pickups, 100f, 1f);
+            Pickup(pickups, 146f, 1f);         // so the pit after checkpoint 3 can always be crossed
+            Pickup(pickups, 161f, 1f);
+            Pickup(pickups, 165.5f, 2.6f);
+            Pickup(pickups, 170f, 1f);
+            Barrier("ExitDoor", barriers, 201.7f, 202.3f, true);
+
+            DroneOn(machines, 49f, 57f, 1.4f, 2.5f, 0f);
+            TurretOn(machines, 196f, 0f, -1, 1.8f, 0.3f);
+
+            Laser(hazards, 90f, 0f, CeilingY, 1.4f, 1.2f, 0f);
+            Laser(hazards, 95f, 0f, CeilingY, 1.4f, 1.2f, 0.6f);
+            LockAt(locks, 64f, 0f, CeilingY, 2);
+            LockAt(locks, 175f, 0f, CeilingY, 3);
+
+            Checkpoint(checkpoints, 42f, 0f);
+            Checkpoint(checkpoints, 81f, 0f);
+            Checkpoint(checkpoints, 143f, 0f);
+
+            Hint(hints, HintId.Plates, 11f, 18f, 0f);
+            Hint(hints, HintId.ChargeLocks, 58f, 63.4f, 0f);
+            Hint(hints, HintId.KeepCharge, 176f, 179f, 0f);
+            Hint(hints, HintId.OutOfEnergy, 187f, 201.5f, 0f, onlyWhenEmpty: true);
+
+            // --- dressing --------------------------------------------------------------------
+            EchoLevelArt.CoreMachinery(kit, backdrop, -4f, 209f, -0.25f);
+            EchoLevelArt.Reactor(backdrop, new Vector2(125.5f, 6.2f), false);
+            EchoLevelArt.Prop(props, Path(kit.props[0]), 6f, 0f);
+            EchoLevelArt.Prop(props, Path(kit.props[1]), 13.5f, 0f);
+            EchoLevelArt.Prop(props, Path(kit.props[2]), 52f, 0f);
+            EchoLevelArt.Prop(props, Path(kit.props[0]), 84f, 0f);
+            EchoLevelArt.Prop(props, Path(kit.props[1]), 105f, 0f);
+            EchoLevelArt.Prop(props, Path(kit.props[2]), 147.5f, 0f);
+            EchoLevelArt.Prop(props, Path(kit.props[0]), 171.5f, 0f);
+            EchoLevelArt.Prop(props, Path(kit.props[1]), 193.5f, 0f);
+            foreach (float x in new[] { 4f, 44f, 58f, 84f, 100f, 145f, 162f, 171f, 192f, 206f })
+                EchoLevelArt.CeilingLamp(lights, x, 4.6f, x == 58f || x == 171f, kit.lampColor);
+
+            Finish(level, camera, new Vector2(2f, 1f), new Rect(-4f, Bottom, 213f, 16f),
+                   "SECTOR 03", "ENERGY CORE", 0, 3, SceneNames.Boss);
+        }
+
+        /// <summary>A cracked core plate over the abyss that gives way a moment after it is stood on.</summary>
+        static void UnstablePlate(Transform parent, float xMin, float xMax, float top)
+        {
+            const float thickness = 0.5f;
+            float width = xMax - xMin;
+            var go = new GameObject("UnstablePlate") { layer = LayerMask.NameToLayer(Layers.Ground) };
+            go.transform.SetParent(parent, false);
+            go.transform.position = new Vector3((xMin + xMax) * 0.5f, top - thickness * 0.5f, 0f);
+            go.AddComponent<BoxCollider2D>().size = new Vector2(width, thickness);
+
+            var calm = EchoArtFactory.LoadSprite("Assets/Art/Pixel/Core/UnstablePlatform.png");
+            var visual = new GameObject("Plate");
+            visual.transform.SetParent(go.transform, false);
+            var renderer = visual.AddComponent<SpriteRenderer>();
+            renderer.sprite = calm;
+            renderer.drawMode = SpriteDrawMode.Tiled;
+            renderer.size = new Vector2(width, thickness);
+            renderer.sortingLayerName = "Level";
+
+            var plate = go.AddComponent<CollapsingPlatform>();
+            EchoPrefabFactory.SetReference(plate, "plate", renderer);
+            EchoPrefabFactory.SetReference(plate, "calmSprite", calm);
+            EchoPrefabFactory.SetReference(plate, "hotSprite", EchoArtFactory.LoadSprite("Assets/Art/Pixel/Core/UnstableGlowPlatform.png"));
+        }
+
+        /// <summary>
+        /// A core lock from the floor to the ceiling: a steel-blue field between two emitters, and a
+        /// panel of charge lights on the approach side (one per charge it needs).
+        /// </summary>
+        static ChargeLock LockAt(Transform parent, float x, float floorY, float ceilingY, int required)
+        {
+            float height = ceilingY - floorY;
+            var go = new GameObject($"ChargeLock_{required}") { layer = LayerMask.NameToLayer(Layers.Ground) };
+            go.transform.SetParent(parent, false);
+            go.transform.position = new Vector3(x, floorY + height * 0.5f, 0f);
+            go.AddComponent<BoxCollider2D>().size = new Vector2(0.6f, height);
+
+            var frames = EchoArtFactory.LoadSprites("Assets/Art/Pixel/Energy/LockField_{0:00}.png", 4);
+            var field = new GameObject("Field");
+            field.transform.SetParent(go.transform, false);
+            var fieldRenderer = field.AddComponent<SpriteRenderer>();
+            fieldRenderer.sprite = frames[0];
+            fieldRenderer.drawMode = SpriteDrawMode.Tiled;
+            fieldRenderer.size = new Vector2(frames[0].bounds.size.x, height);
+            fieldRenderer.sortingLayerName = "Interactables";
+            Frames(field.AddComponent<SpriteFlipbook>(), frames, 8f);
+            var glow = EchoLevelArt.AddPointLight(field, new Color(0.55f, 0.63f, 1f), 0.8f, 2.5f);
+
+            var emitter = EchoArtFactory.LoadSprite("Assets/Art/Pixel/Energy/LockEmitter.png");
+            float emitterHalf = emitter.bounds.size.y * 0.5f;
+            foreach (bool top in new[] { true, false })
+            {
+                var cap = new GameObject(top ? "Emitter_Top" : "Emitter_Bottom");
+                cap.transform.SetParent(go.transform, false);
+                cap.transform.localPosition = new Vector3(0f, top ? height * 0.5f - emitterHalf : -height * 0.5f + emitterHalf, 0f);
+                cap.transform.localScale = new Vector3(1f, top ? 1f : -1f, 1f);
+                var capRenderer = cap.AddComponent<SpriteRenderer>();
+                capRenderer.sprite = emitter;
+                capRenderer.sortingLayerName = "Interactables";
+                capRenderer.sortingOrder = 1;
+            }
+
+            // The light panel stands on the approach (left) side at eye level, filling from the bottom.
+            const float pixel = 1f / 32f;
+            var panelSprite = EchoArtFactory.LoadSprite($"Assets/Art/Pixel/Gameplay/LockPanel_{required}.png");
+            float panelHeight = panelSprite.bounds.size.y;
+            var panel = new GameObject("LightPanel");
+            panel.transform.SetParent(go.transform, false);
+            panel.transform.localPosition = new Vector3(-0.62f, -height * 0.5f + 1.5f + panelHeight * 0.5f, 0f);
+            var panelRenderer = panel.AddComponent<SpriteRenderer>();
+            panelRenderer.sprite = panelSprite;
+            panelRenderer.sortingLayerName = "Interactables";
+            panelRenderer.sortingOrder = 2;
+
+            var off = EchoArtFactory.LoadSprite("Assets/Art/Pixel/Gameplay/LockLight_Off.png");
+            var renderers = new SpriteRenderer[required];
+            for (int k = 0; k < required; k++)
+            {
+                int slotFromTop = required - 1 - k;
+                var light = new GameObject($"Light_{k + 1}");
+                light.transform.SetParent(panel.transform, false);
+                light.transform.localPosition = new Vector3(0f, panelHeight * 0.5f - (6f + 10f * slotFromTop) * pixel, 0f);
+                renderers[k] = light.AddComponent<SpriteRenderer>();
+                renderers[k].sprite = off;
+                renderers[k].sortingLayerName = "Interactables";
+                renderers[k].sortingOrder = 3;
+            }
+
+            var chargeLock = go.AddComponent<ChargeLock>();
+            EchoPrefabFactory.SetReference(chargeLock, "field", fieldRenderer);
+            EchoPrefabFactory.SetReference(chargeLock, "lightOff", off);
+            EchoPrefabFactory.SetReference(chargeLock, "lightOn", EchoArtFactory.LoadSprite("Assets/Art/Pixel/Gameplay/LockLight_On.png"));
+            EchoPrefabFactory.SetReference(chargeLock, "glow", glow);
+            var settings = new SerializedObject(chargeLock);
+            settings.FindProperty("required").intValue = required;
+            var array = settings.FindProperty("lights");
+            array.arraySize = required;
+            for (int k = 0; k < required; k++)
+                array.GetArrayElementAtIndex(k).objectReferenceValue = renderers[k];
+            settings.ApplyModifiedPropertiesWithoutUndo();
+            return chargeLock;
         }
 
         static void Finish(GameObject level, Camera camera, Vector2 spawnAt, Rect bounds,

@@ -180,8 +180,8 @@ namespace Echo.Gameplay
             CompleteProgress = 1f;
 
             string target = string.IsNullOrEmpty(nextScene) ? SceneManager.GetActiveScene().name : nextScene;
-            if (!SceneLoader.IsInBuild(target))
-                target = SceneNames.MainMenu; // the next level isn't built yet
+            if (!SceneLoader.IsInBuild(target) || !PresentationMode.IsSceneEnabled(target))
+                target = SceneNames.MainMenu; // the next level isn't built yet, or this phase doesn't present it
             if (saveProgress && PresentationMode.IsEnabled(Feature.SaveSystem) && target != SceneNames.MainMenu)
                 SaveData.SetContinue(target);
             if (SceneLoader.Instance != null)

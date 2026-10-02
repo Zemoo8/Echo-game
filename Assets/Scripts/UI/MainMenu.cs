@@ -56,7 +56,9 @@ namespace Echo.UI
             RefreshLabels();
 
             // With saved progress the list reads CONTINUE / NEW GAME, otherwise just PLAY.
-            bool canContinue = PresentationMode.IsEnabled(Feature.SaveSystem) && SaveData.HasProgress;
+            bool canContinue = PresentationMode.IsEnabled(Feature.SaveSystem) && SaveData.HasProgress
+                               && SceneLoader.IsInBuild(SaveData.ContinueScene)
+                               && PresentationMode.IsSceneEnabled(SaveData.ContinueScene);
             continueGame.gameObject.SetActive(canContinue);
             play.SetLabel(canContinue ? "NEW GAME" : "PLAY");
             ShowCredits(false);

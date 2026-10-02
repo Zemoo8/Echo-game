@@ -23,6 +23,10 @@ namespace Echo.Visuals
             Machine.AnyDestroyed += OnMachineDestroyed;
             ControlConsole.AnyUsed += OnConsoleUsed;
             SecurityDoor.AnyOpened += OnDoorOpened;
+            CollapsingPlatform.AnyCracked += OnPlateCracked;
+            CollapsingPlatform.AnyBroke += OnPlateBroke;
+            ChargeLock.AnyChanged += OnLockChanged;
+            ChargeLock.AnyRefused += OnLockRefused;
         }
 
         void OnDisable()
@@ -33,6 +37,10 @@ namespace Echo.Visuals
             Machine.AnyDestroyed -= OnMachineDestroyed;
             ControlConsole.AnyUsed -= OnConsoleUsed;
             SecurityDoor.AnyOpened -= OnDoorOpened;
+            CollapsingPlatform.AnyCracked -= OnPlateCracked;
+            CollapsingPlatform.AnyBroke -= OnPlateBroke;
+            ChargeLock.AnyChanged -= OnLockChanged;
+            ChargeLock.AnyRefused -= OnLockRefused;
         }
 
         static void OnMachineDestroyed(Machine machine)
@@ -46,6 +54,20 @@ namespace Echo.Visuals
         static void OnConsoleUsed(ControlConsole console) => AudioManager.Play(SfxId.ConsoleUsed);
 
         static void OnDoorOpened(SecurityDoor door) => AudioManager.Play(SfxId.DoorOpen);
+
+        static void OnPlateCracked(CollapsingPlatform plate) => AudioManager.Play(SfxId.PlateCrack);
+
+        static void OnPlateBroke(CollapsingPlatform plate)
+        {
+            AudioManager.Play(SfxId.PlateBreak);
+            VfxManager.Play(VfxId.PlateCrumble, plate.transform.position);
+            CameraFeedback.Shake(0.15f);
+        }
+
+        static void OnLockChanged(ChargeLock chargeLock, bool open) =>
+            AudioManager.Play(open ? SfxId.LockOpen : SfxId.LockClose);
+
+        static void OnLockRefused(ChargeLock chargeLock) => AudioManager.Play(SfxId.LockRefused);
 
         static void OnCheckpoint(Checkpoint checkpoint)
         {
