@@ -20,6 +20,7 @@ namespace Echo.Gameplay
         Consoles,
         Plates,
         ChargeLocks,
+        Guardian,
     }
 
     /// <summary>

@@ -3,9 +3,10 @@
 **Every dash is a decision.** A dash costs one energy charge, and every level ends with a door
 that only a dash can break, so the player always has to keep a charge in reserve.
 
-Levels are built in code by `EchoLevelFactory` (**ECHO > Setup > Rebuild Level 1 / 2 / 3**); this
-document explains what each section is for. Stills: `Docs/Screenshots/level1_*.png`, `level2_*.png`
-and `level3_*.png`.
+Levels are built in code by `EchoLevelFactory` (**ECHO > Setup > Rebuild Level 1 / 2 / 3**,
+**Rebuild Boss Arena**, **Rebuild Ending**); this document explains what each section is for.
+Stills: `Docs/Screenshots/level1_*.png`, `level2_*.png`, `level3_*.png`, `boss_1.png` and
+`ending_1.png`.
 
 ## Movement metrics
 
@@ -107,6 +108,46 @@ can press **R** and try the room again with its cells back.
 need 2 and 3 held. Arriving at the second lock with a full meter leaves exactly one spare charge
 after the last pit and the exit.
 
+## Finale · The Guardian
+
+One fixed screen inside the reactor chamber (x −10 → 10). The Guardian is the reactor's last
+defence: an armoured orb that hovers in front of the reactor. Start with **1 charge** (max 3).
+
+**The loop.** The Guardian attacks with its shell closed (its seam and the reactor glow red), then
+sinks to platform height and opens its shell for a short window (core cyan). A dash into it while
+open is a hit. A dash into the closed shell bounces off, and that charge is gone: the fight's
+decision is when to spend. Touching the Guardian without dashing kills, as with every machine.
+Its shots, waves and beams can't touch a dashing player, so a dash is also an escape.
+
+| Phase | Hits | Attacks | Shell open for |
+|-------|------|---------|----------------|
+| 1 | 1–2 | A volley of 4 bolts from the wall ports on one side, alternating low (floor height) and high (platform height); or a wave along the floor | 2.6 s |
+| 2 | 3–4 | The same, plus 3 beams from the ceiling, each aimed where the player stands (a flickering line for 0.75 s first) | 2.2 s |
+| 3 | 5–6 | A wave from each wall with a volley from the other side; or bolts from both sides with 3 beams | 1.8 s |
+
+Each port glows red 0.35 s before it fires. Between phases the Guardian pauses and the reactor
+flashes.
+
+**The arena.** Two steel platforms at height 2.6 (x −7 → −4 and 4 → 7) put the player level with
+the open shell, 3 units away: a dash from a platform's inner edge reaches it. Waves run along the
+floor, so the platforms are safe from them, but high bolts cross the platforms. Three cells (one
+on each platform, one on the floor in the middle) **come back 4 s after they are taken**: a fight
+that lasts can't run on a fixed supply.
+
+**Dying** restarts the current phase: hits from earlier phases stay. The player comes back at the
+entrance with 1 charge.
+
+**The way out.** When the sixth hit lands, the Guardian bursts apart, the reactor calms to cyan,
+and the blast door at the right rolls up. Behind it is the exit, which, like every exit, only
+opens to a dash.
+
+## The ending
+
+The reactor chamber, calm. Captions say the facility is quiet and that the reactor's power has
+sent out a distress beacon; a transmission answers: a rescue ship is coming. Then **THE END**, and
+a press returns to the menu. Finishing the story clears Continue, so the menu offers a new game.
+Jump, dash, Enter or a tap skips each line.
+
 ## Machines, consoles and core devices
 
 | Thing | Behaviour | Read as |
@@ -153,6 +194,17 @@ gives way and re-forms; falling through one kills and the respawn restores it; a
 only with enough charge, stays open while the player is inside, and closes again behind them; and
 the bot **plays Level 3 to the exit** without being taught about plates or locks (about 26 s; it
 jumps every gap, so the plates never catch it, and it never wastes a charge, so the locks open).
+
+`Assets/Tests/PlayMode/BossTests.cs`: the arena has its pieces; the closed shell deflects a dash
+and the open shell takes one hit per opening; a death restarts only the current phase; six hits
+defeat the Guardian, open the blast door, and the exit dash completes the fight; a **bot
+(`BossBot.cs`) wins the fight** with run, jump and dash only (about 50 s); and the ending plays
+through to THE END and clears Continue.
+
+The boss bot found two problems. It kept dying when it jumped to climb back onto a platform while
+high bolts crossed there (its own mistake, now fixed), and that showed how crowded phase 3 was:
+five bolts from both sides plus four beams at once. Phase 3 now uses four bolts and three beams,
+which keeps it the hardest phase on a phone screen without being a wall.
 
 `Assets/Tests/EditMode/PresentationConfigTests.cs` checks that each presentation phase leads only
 into the levels it presents: in Phase 4 the end of Level 2 goes back to the menu, in Phase 5 it

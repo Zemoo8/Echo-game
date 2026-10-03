@@ -155,6 +155,8 @@ namespace Echo.UI
                     return "Walk into a console to use it. Green means it worked.";
                 case HintId.Plates:
                     return "Cracked plates give way a moment after you land. Keep moving.";
+                case HintId.Guardian:
+                    return "Dash into the Guardian while its shell is open. Its shots and waves can't touch you mid-dash.";
                 case HintId.ChargeLocks:
                     return "A core lock opens only while you hold enough charge: one light per charge. Don't spend them on the way.";
                 case HintId.OutOfEnergy:

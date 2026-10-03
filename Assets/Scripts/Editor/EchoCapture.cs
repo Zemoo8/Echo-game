@@ -48,6 +48,9 @@ namespace Echo.EditorTools
             new Vector2(170f, 2.5f),
         };
 
+        // The finale: the Guardian's arena (one fixed screen) and the ending's set.
+        static readonly Vector2[] ArenaShots = { new Vector2(0f, 4.5f) };
+
         [MenuItem("ECHO/Tools/Capture Sandbox Screenshots")]
         public static void CaptureSandbox() => CaptureWorld(EchoSceneFactory.SandboxPath, SandboxShots, "sandbox_");
 
@@ -59,6 +62,13 @@ namespace Echo.EditorTools
 
         [MenuItem("ECHO/Tools/Capture Level 3 Screenshots")]
         public static void CaptureLevel3() => CaptureWorld(EchoLevelFactory.Level3Path, Level3Shots, "level3_");
+
+        [MenuItem("ECHO/Tools/Capture Finale Screenshots")]
+        public static void CaptureFinale()
+        {
+            CaptureWorld(EchoLevelFactory.BossPath, ArenaShots, "boss_");
+            CaptureWorld(EchoLevelFactory.EndingPath, ArenaShots, "ending_");
+        }
 
         static void CaptureWorld(string scenePath, Vector2[] shots, string prefix)
         {

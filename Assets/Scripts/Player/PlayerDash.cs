@@ -110,9 +110,9 @@ namespace Echo.Player
             movement.CancelJump();
             movement.IsOverridden = true;
 
-            HitTargetsAhead();
             body.linearVelocity = new Vector2(Direction * Tuning.DashSpeed, 0f);
             DashStarted?.Invoke(Direction);
+            HitTargetsAhead(); // a target may end the dash right here (the Guardian's shell)
         }
 
         void Continue()
@@ -126,6 +126,8 @@ namespace Echo.Player
             }
 
             HitTargetsAhead();
+            if (!IsDashing)
+                return; // a target stopped the dash and set the player's motion itself
             body.linearVelocity = new Vector2(Direction * Tuning.DashSpeed, 0f);
         }
 

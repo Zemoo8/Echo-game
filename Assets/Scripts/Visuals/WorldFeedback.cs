@@ -27,6 +27,17 @@ namespace Echo.Visuals
             CollapsingPlatform.AnyBroke += OnPlateBroke;
             ChargeLock.AnyChanged += OnLockChanged;
             ChargeLock.AnyRefused += OnLockRefused;
+            Guardian.Woke += OnGuardianWoke;
+            Guardian.Telegraphed += OnGuardianTelegraphed;
+            Guardian.Opened += OnGuardianOpened;
+            Guardian.Hurt += OnGuardianHurt;
+            Guardian.Deflected += OnGuardianDeflected;
+            Guardian.Enraged += OnGuardianEnraged;
+            Guardian.Exploded += OnGuardianExploded;
+            Guardian.Defeated += OnGuardianDefeated;
+            GuardianShockwave.AnyLaunched += OnShockwave;
+            GuardianStrike.AnyWarned += OnStrikeWarned;
+            GuardianStrike.AnyFired += OnStrikeFired;
         }
 
         void OnDisable()
@@ -41,6 +52,17 @@ namespace Echo.Visuals
             CollapsingPlatform.AnyBroke -= OnPlateBroke;
             ChargeLock.AnyChanged -= OnLockChanged;
             ChargeLock.AnyRefused -= OnLockRefused;
+            Guardian.Woke -= OnGuardianWoke;
+            Guardian.Telegraphed -= OnGuardianTelegraphed;
+            Guardian.Opened -= OnGuardianOpened;
+            Guardian.Hurt -= OnGuardianHurt;
+            Guardian.Deflected -= OnGuardianDeflected;
+            Guardian.Enraged -= OnGuardianEnraged;
+            Guardian.Exploded -= OnGuardianExploded;
+            Guardian.Defeated -= OnGuardianDefeated;
+            GuardianShockwave.AnyLaunched -= OnShockwave;
+            GuardianStrike.AnyWarned -= OnStrikeWarned;
+            GuardianStrike.AnyFired -= OnStrikeFired;
         }
 
         static void OnMachineDestroyed(Machine machine)
@@ -68,6 +90,60 @@ namespace Echo.Visuals
             AudioManager.Play(open ? SfxId.LockOpen : SfxId.LockClose);
 
         static void OnLockRefused(ChargeLock chargeLock) => AudioManager.Play(SfxId.LockRefused);
+
+        static void OnGuardianWoke(Guardian guardian)
+        {
+            AudioManager.Play(SfxId.GuardianWake);
+            CameraFeedback.Shake(0.5f);
+        }
+
+        static void OnGuardianTelegraphed(Guardian guardian) => AudioManager.Play(SfxId.GuardianTelegraph);
+
+        static void OnGuardianOpened(Guardian guardian) => AudioManager.Play(SfxId.GuardianOpen);
+
+        static void OnGuardianHurt(Guardian guardian)
+        {
+            AudioManager.Play(SfxId.GuardianHit);
+            VfxManager.Play(VfxId.MachineExplosion, guardian.transform.position);
+            CameraFeedback.Shake(0.5f);
+            HitStop(ExitHitStop);
+        }
+
+        static void OnGuardianDeflected(Guardian guardian)
+        {
+            AudioManager.Play(SfxId.GuardianDeflect);
+            var player = PlayerController.Active;
+            if (player != null)
+                VfxManager.Play(VfxId.DashDenied, (player.transform.position + guardian.transform.position) * 0.5f);
+            CameraFeedback.Shake(0.2f);
+        }
+
+        static void OnGuardianEnraged(Guardian guardian)
+        {
+            AudioManager.Play(SfxId.GuardianWake);
+            CameraFeedback.Shake(0.6f);
+        }
+
+        static void OnGuardianExploded(Guardian guardian, Vector3 position)
+        {
+            AudioManager.Play(SfxId.GuardianExplode);
+            VfxManager.Play(VfxId.MachineExplosion, position);
+            CameraFeedback.Shake(0.35f);
+        }
+
+        static void OnGuardianDefeated(Guardian guardian)
+        {
+            AudioManager.Play(SfxId.GuardianDefeated);
+            VfxManager.Play(VfxId.Victory, guardian.transform.position);
+            CameraFeedback.Shake(0.8f);
+            HitStop(ExitHitStop);
+        }
+
+        static void OnShockwave(GuardianShockwave wave) => AudioManager.Play(SfxId.ShockwaveLaunch);
+
+        static void OnStrikeWarned(GuardianStrike strike) => AudioManager.Play(SfxId.StrikeWarn);
+
+        static void OnStrikeFired(GuardianStrike strike) => AudioManager.Play(SfxId.StrikeFire);
 
         static void OnCheckpoint(Checkpoint checkpoint)
         {

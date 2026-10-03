@@ -33,6 +33,16 @@ namespace Echo.Audio
         LockOpen,
         LockClose,
         LockRefused,
+        GuardianWake,
+        GuardianTelegraph,
+        GuardianOpen,
+        GuardianHit,
+        GuardianDeflect,
+        GuardianExplode,
+        GuardianDefeated,
+        ShockwaveLaunch,
+        StrikeWarn,
+        StrikeFire,
     }
 
     /// <summary>Music tracks and ambience beds, by name.</summary>

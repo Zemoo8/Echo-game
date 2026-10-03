@@ -68,6 +68,8 @@ namespace Echo.EditorTools
             EchoLevelFactory.RebuildLevel1();
             EchoLevelFactory.RebuildLevel2();
             EchoLevelFactory.RebuildLevel3();
+            EchoLevelFactory.RebuildBoss();
+            EchoLevelFactory.RebuildEnding();
             AssetDatabase.SaveAssets();
             Debug.Log("[ECHO Art] Visual overhaul applied.");
         }
@@ -423,6 +425,16 @@ namespace Echo.EditorTools
                 Sound(SfxId.LockOpen, 0.55f, 0f, 0f, "forceField_002"),
                 Sound(SfxId.LockClose, 0.45f, 0f, 0f, "forceField_004"),
                 Sound(SfxId.LockRefused, 0.45f, 0f, 0f, "glitch_002"),
+                Sound(SfxId.GuardianWake, 0.7f, 0f, 0f, "lowDown"),
+                Sound(SfxId.GuardianTelegraph, 0.35f, 0.05f, 0f, "glitch_002"),
+                Sound(SfxId.GuardianOpen, 0.55f, 0f, 0f, "phaserUp3"),
+                Sound(SfxId.GuardianHit, 0.75f, 0.05f, 0f, "explosionCrunch_002"),
+                Sound(SfxId.GuardianDeflect, 0.6f, 0.08f, 0f, "impactMetal_002"),
+                Sound(SfxId.GuardianExplode, 0.6f, 0.1f, 0.05f, "explosionCrunch_000", "explosionCrunch_002"),
+                Sound(SfxId.GuardianDefeated, 0.85f, 0f, 0f, "lowFrequency_explosion_000"),
+                Sound(SfxId.ShockwaveLaunch, 0.55f, 0.05f, 0f, "impactPunch_medium_000"),
+                Sound(SfxId.StrikeWarn, 0.3f, 0.08f, 0.05f, "laserSmall_000"),
+                Sound(SfxId.StrikeFire, 0.45f, 0.08f, 0.05f, "laserLarge_000"),
             };
 
             library.tracks = new[]

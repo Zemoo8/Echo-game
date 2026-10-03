@@ -21,6 +21,12 @@ EditorBuildSettings:
     path: Assets/Scenes/Levels/Level3_Core.unity
     guid: ea2379af3db816e4f88877bd53ef991f
   - enabled: 1
+    path: Assets/Scenes/Levels/Boss_Guardian.unity
+    guid: 72eb518753b00cb48942cb2716ca4b96
+  - enabled: 1
+    path: Assets/Scenes/Levels/Ending.unity
+    guid: 586f30b33e390de49806450617da78fa
+  - enabled: 1
     path: Assets/Scenes/Presentation/Showcase_Design.unity
     guid: e2878c2512008664d9b6df0e7108cd9a
   - enabled: 1

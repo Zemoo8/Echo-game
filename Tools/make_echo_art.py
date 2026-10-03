@@ -668,6 +668,128 @@ def lock_lights():
         save(img, "Gameplay", f"{name}.png")
 
 
+def guardian():
+    """The Guardian: a 64x30 armored half-shell (drawn for the top, mirrored for the bottom with
+    thrusters), a 30x30 core in calm cyan and overloaded red, and a white 44x2 seam tinted at
+    runtime (red while it attacks). The halves part to show the core."""
+    c = 31.5
+    for half in ("Top", "Bottom"):
+        img = Image.new("RGBA", (64, 30), CLEAR)
+        px = img.load()
+        for y in range(30):
+            for x in range(64):
+                # Distance from the middle of the seam; the dome is slightly flattened.
+                dy = (29.5 - y) if half == "Top" else (y + 0.5)
+                d = math.hypot(x - c, dy * 1.12)
+                if d > 31.5:
+                    continue
+                if d > 30:
+                    color = METAL_DARK
+                elif d > 27.5:
+                    color = METAL_LIGHT if (half == "Top" and x < c) else METAL
+                elif d > 26:
+                    color = METAL_DARK
+                elif abs(d - 17) < 0.7:
+                    color = METAL_DARK  # inner plate seam
+                else:
+                    angle = math.degrees(math.atan2(dy, x - c))
+                    radial = d > 17 and any(abs(angle - a) < 1.6 for a in (45, 90, 135))
+                    color = METAL_DARK if radial else (METAL if (x + y) % 6 else METAL_LIGHT)
+                px[x, y] = color
+        for a_deg in (25, 65, 115, 155):  # rivets on the outer band
+            rx = int(round(c + math.cos(math.radians(a_deg)) * 28.7))
+            r_up = int(round(math.sin(math.radians(a_deg)) * 28.7 / 1.12))
+            ry = 29 - r_up if half == "Top" else r_up
+            if 0 <= ry < 30:
+                px[rx, ry] = METAL_LIGHT
+        if half == "Top":  # sensor fin with a red tip
+            for y in range(0, 3):
+                for x in range(30, 34):
+                    px[x, y] = METAL_LIGHT if x == 30 else METAL
+            px[31, 0], px[32, 0] = DANGER, DANGER
+        else:  # three thrusters with a cyan glow
+            for tx in (18, 30, 42):
+                for y in range(23, 28):
+                    for x in range(tx, tx + 4):
+                        px[x, y] = METAL_DARK if x in (tx, tx + 3) else VOID
+                px[tx + 1, 27], px[tx + 2, 27] = ENERGY_DEEP, ENERGY_DEEP
+        save(img, "Core", f"Guardian_Shell{half}.png")
+
+    bayer = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]
+    for name, core, light, deep in (("Guardian_CoreCalm", ENERGY, ENERGY_LIGHT, ENERGY_DEEP),
+                                    ("Guardian_CoreOverload", DANGER, hexc("FFD0C0"), hexc("8A1A22"))):
+        img = Image.new("RGBA", (30, 30), CLEAR)
+        px = img.load()
+        cc = 14.5
+        for y in range(30):
+            for x in range(30):
+                d = math.hypot(x - cc, y - cc)
+                if d > 14.5:
+                    continue
+                if d > 13:
+                    color = METAL_DARK
+                elif d > 11.5:
+                    color = deep
+                else:
+                    level = (1 - d / 11.5) * 16
+                    b = bayer[y % 4][x % 4]
+                    color = light if level > b + 8 else core if level > b * 0.4 else deep
+                px[x, y] = color
+        for y in range(9, 21):  # a slit pupil, so the core reads as an eye
+            px[14, y] = px[15, y] = VOID if name.endswith("Overload") else deep
+        save(img, "Core", f"{name}.png")
+
+    save(Image.new("RGBA", (44, 2), WHITE), "Core", "Guardian_Seam.png")
+
+
+def shockwave(frame):
+    """20x28 floor wave: a crest of danger-orange energy, brightest at its front (it faces right
+    and is mirrored at runtime)."""
+    img = Image.new("RGBA", (20, 28), CLEAR)
+    px = img.load()
+    for x in range(20):
+        t = x / 19  # 0 at the tail, 1 at the front
+        height = int(6 + 20 * math.sin(t * math.pi * 0.92) ** 1.4) + (2 if (x + frame * 3) % 5 == 0 else 0)
+        height = min(28, height)
+        for y in range(28 - height, 28):
+            depth = (y - (28 - height)) / max(1, height)
+            color = hexc("FFD0C0") if depth < 0.12 else DANGER if depth < 0.45 else hexc("8A1A22")
+            px[x, y] = (color[0], color[1], color[2], int(255 * (0.35 + 0.65 * t)))
+    save(img, "Core", f"Shockwave_{frame:02d}.png")
+
+
+def wall_port():
+    """12x10 wall-mounted bolt port for the Guardian's arena (pale lens, tinted red as it fires)."""
+    img = Image.new("RGBA", (12, 10), CLEAR)
+    px = img.load()
+    for y in range(10):
+        for x in range(12):
+            edge = x in (0, 11) or y in (0, 9)
+            px[x, y] = METAL_DARK if edge else METAL if y > 2 else METAL_LIGHT
+    for y in range(3, 7):
+        for x in range(4, 8):
+            px[x, y] = WHITE if y == 4 and x in (5, 6) else hexc("C8C8D0")
+    save(img, "Core", "WallPort.png")
+
+
+def ui_boss_cells():
+    """14x6 boss health segments: full (danger red, lit top line) and empty (dark glass)."""
+    for name, full in (("BossCellFull", True), ("BossCellEmpty", False)):
+        img = Image.new("RGBA", (14, 6), CLEAR)
+        px = img.load()
+        for y in range(6):
+            for x in range(14):
+                if x in (0, 13) and y in (0, 5):
+                    continue
+                edge = x in (0, 13) or y in (0, 5)
+                if full:
+                    color = hexc("8A1A22") if edge else hexc("FFD0C0") if y == 1 else DANGER
+                else:
+                    color = CELL_EMPTY_EDGE if edge else CELL_EMPTY_FILL
+                px[x, y] = color
+        save(img, "UI", f"{name}.png")
+
+
 if __name__ == "__main__":
     lab_block()
     lab_platform()
@@ -703,4 +825,9 @@ if __name__ == "__main__":
         barrier_field(i, base=CORE_EDGE, light=WHITE, name="LockField")
     lock_emitter()
     lock_lights()
+    guardian()
+    for i in range(3):
+        shockwave(i)
+    wall_port()
+    ui_boss_cells()
     print("Wrote ECHO pixel art to", os.path.abspath(OUT))

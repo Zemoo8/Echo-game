@@ -16,7 +16,7 @@ namespace Echo.EditorTools
     /// jump, 8-unit gaps for a jump plus an air dash, steps of 1, 1.2 and 0.8 units.
     /// Rebuilt from scratch each time; never hand-edit the scenes.
     /// </summary>
-    public static class EchoLevelFactory
+    public static partial class EchoLevelFactory
     {
         public static string Level1Path => $"{ScenesFolder}/Levels/{SceneNames.Level1}.unity";
         public static string Level2Path => $"{ScenesFolder}/Levels/{SceneNames.Level2}.unity";
@@ -58,6 +58,8 @@ namespace Echo.EditorTools
             EnsureScene(Level1Path, BuildLevel1, false);
             EnsureScene(Level2Path, BuildLevel2, false);
             EnsureScene(Level3Path, BuildLevel3, false);
+            EnsureScene(BossPath, BuildBoss, false);
+            EnsureScene(EndingPath, BuildEnding, false);
         }
 
         // Level 1 · Awakening (abandoned lab). Floor tops: 0 unless noted. Left to right:

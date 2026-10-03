@@ -129,7 +129,57 @@ namespace Echo.EditorTools
             EchoPrefabFactory.SetReference(energyHud, "cellTemplate", cellView);
             EchoPrefabFactory.SetReference(energyHud, "icon", icon);
             EchoPrefabFactory.SetReference(energyHud, "shakeTarget", meter);
+            BuildBossBar(hud);
             return hud;
+        }
+
+        // The Guardian's health, top centre: its name over one segment per hit it can take.
+        static void BuildBossBar(RectTransform hud)
+        {
+            var bar = NewRect("BossBar", hud);
+            Place(bar, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -12f), new Vector2(360f, 70f));
+            var group = bar.gameObject.AddComponent<CanvasGroup>();
+            group.alpha = 0f;
+            var frame = NewRect("Frame", bar);
+            Stretch(frame);
+
+            var title = NewLabel("Name", frame, "THE GUARDIAN", 18, new Color(1f, 0.6f, 0.5f), TextAnchor.UpperCenter);
+            Place(title.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), Vector2.zero, new Vector2(360f, 24f));
+
+            var full = UiSprite("BossCellFull");
+            var row = NewRect("Segments", frame);
+            Place(row, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), Vector2.zero, Vector2.zero);
+            var panel = row.gameObject.AddComponent<Image>();
+            panel.sprite = UiSprite("Panel");
+            panel.type = UnityEngine.UI.Image.Type.Sliced;
+            panel.raycastTarget = false;
+            var layout = row.gameObject.AddComponent<HorizontalLayoutGroup>();
+            layout.padding = new RectOffset((int)(4 * Px), (int)(4 * Px), (int)(4 * Px), (int)(4 * Px));
+            layout.spacing = 2 * Px;
+            layout.childAlignment = TextAnchor.MiddleCenter;
+            layout.childControlWidth = layout.childControlHeight = false;
+            layout.childForceExpandWidth = layout.childForceExpandHeight = false;
+            var fitter = row.gameObject.AddComponent<ContentSizeFitter>();
+            fitter.horizontalFit = fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            var segments = new Image[Gameplay.Guardian.HitsToDefeat];
+            for (int i = 0; i < segments.Length; i++)
+            {
+                segments[i] = NewImage($"Segment_{i + 1}", row, full, Color.white);
+                segments[i].rectTransform.sizeDelta = PixelSize(full);
+            }
+
+            var bossBar = bar.gameObject.AddComponent<BossBar>();
+            EchoPrefabFactory.SetReference(bossBar, "group", group);
+            EchoPrefabFactory.SetReference(bossBar, "shakeTarget", frame);
+            EchoPrefabFactory.SetReference(bossBar, "full", full);
+            EchoPrefabFactory.SetReference(bossBar, "empty", UiSprite("BossCellEmpty"));
+            var settings = new SerializedObject(bossBar);
+            var array = settings.FindProperty("segments");
+            array.arraySize = segments.Length;
+            for (int i = 0; i < segments.Length; i++)
+                array.GetArrayElementAtIndex(i).objectReferenceValue = segments[i];
+            settings.ApplyModifiedPropertiesWithoutUndo();
         }
 
         static void BuildIntroCard(RectTransform canvas)

@@ -12,6 +12,7 @@ namespace Echo.Player
     public class PlayerMovement : MonoBehaviour
     {
         const float GroundProbeDepth = 0.08f;
+        const float KnockTime = 0.18f;
         const float GroundedMaxRiseSpeed = 0.05f;
 
         [SerializeField] PlayerTuning tuning;
@@ -24,6 +25,7 @@ namespace Echo.Player
         float moveInput;
         bool jumpHeld;
         bool isJumping;
+        float knockedUntil = float.NegativeInfinity;
         float lastGroundedTime = float.NegativeInfinity;
         float lastJumpPressedTime = float.NegativeInfinity;
         float lastAirSpeed;
@@ -72,6 +74,16 @@ namespace Echo.Player
         /// <summary>Ends the current jump arc (a dash takes over the vertical motion).</summary>
         public void CancelJump() => isJumping = false;
 
+        /// <summary>Throws the player (recoil off the Guardian): sets the velocity and ends any jump.</summary>
+        public void Knock(Vector2 velocity)
+        {
+            body.linearVelocity = velocity;
+            knockedUntil = Time.time + KnockTime;
+            isJumping = false;
+            IsGrounded = false;
+            lastGroundedTime = float.NegativeInfinity; // no coyote jump out of a knock
+        }
+
         /// <summary>Moves the player instantly and clears momentum and buffered input.</summary>
         public void Teleport(Vector2 position)
         {
@@ -92,7 +104,8 @@ namespace Echo.Player
             if (IsOverridden)
                 return;
 
-            velocity.x = Run(velocity.x);
+            if (Time.time >= knockedUntil)
+                velocity.x = Run(velocity.x); // a knock keeps its push for a moment before control returns
             velocity.y = Vertical(velocity.y);
             body.linearVelocity = velocity;
 

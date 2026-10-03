@@ -180,6 +180,67 @@ MonoBehaviour:
     volume: 0.45
     pitchJitter: 0
     cooldown: 0
+  - id: 27
+    variations:
+    - {fileID: 8300000, guid: dc4023c83d38e764d9f6bc8180c1d418, type: 3}
+    volume: 0.7
+    pitchJitter: 0
+    cooldown: 0
+  - id: 28
+    variations:
+    - {fileID: 8300000, guid: 15ff6717a836fd943a25de61cd09cccd, type: 3}
+    volume: 0.35
+    pitchJitter: 0.05
+    cooldown: 0
+  - id: 29
+    variations:
+    - {fileID: 8300000, guid: 0ed2dcdcd0b293542bdbf4a442d70a31, type: 3}
+    volume: 0.55
+    pitchJitter: 0
+    cooldown: 0
+  - id: 30
+    variations:
+    - {fileID: 8300000, guid: 85c20e29ab6ee5c46b52e58fa07c525d, type: 3}
+    volume: 0.75
+    pitchJitter: 0.05
+    cooldown: 0
+  - id: 31
+    variations:
+    - {fileID: 8300000, guid: 617c996a630553149a01aa4e9bc5bfbc, type: 3}
+    volume: 0.6
+    pitchJitter: 0.08
+    cooldown: 0
+  - id: 32
+    variations:
+    - {fileID: 8300000, guid: abf02585274407c4686ee6d44a141192, type: 3}
+    - {fileID: 8300000, guid: 85c20e29ab6ee5c46b52e58fa07c525d, type: 3}
+    volume: 0.6
+    pitchJitter: 0.1
+    cooldown: 0.05
+  - id: 33
+    variations:
+    - {fileID: 8300000, guid: e44763e75bfd18548915b2534a1893ce, type: 3}
+    volume: 0.85
+    pitchJitter: 0
+    cooldown: 0
+  - id: 34
+    variations:
+    - {fileID: 8300000, guid: c69550ea65d7b79448b28b4f3dab5cb1, type: 3}
+    volume: 0.55
+    pitchJitter: 0.05
+    cooldown: 0
+  - id: 35
+    variations:
+    - {fileID: 8300000, guid: deda6fe5484655245b933ce9172f934c, type: 3}
+    volume: 0.3
+    pitchJitter: 0.08
+    cooldown: 0.05
+  - id: 36
+    variations:
+    - {fileID: 8300000, guid: 06e12c9c94cfecc4fa347c07677b8540, type: 3}
+    volume: 0.45
+    pitchJitter: 0.08
+    cooldown: 0.05
   tracks:
   - id: 1
     music: {fileID: 8300000, guid: 4670141aba53dea4493f45187f8bab4d, type: 3}
