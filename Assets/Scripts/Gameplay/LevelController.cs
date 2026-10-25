@@ -179,6 +179,13 @@ namespace Echo.Gameplay
             }
             CompleteProgress = 1f;
 
+            // GamePix shows an ad between levels (only in the GamePix phase; the plugin pauses the game).
+            bool adDone = GamePixManager.Instance == null;
+            if (!adDone)
+                GamePixManager.Instance.ShowInterstitial(() => adDone = true);
+            while (!adDone)
+                yield return null;
+
             string target = string.IsNullOrEmpty(nextScene) ? SceneManager.GetActiveScene().name : nextScene;
             if (!SceneLoader.IsInBuild(target) || !PresentationMode.IsSceneEnabled(target))
                 target = SceneNames.MainMenu; // the next level isn't built yet, or this phase doesn't present it

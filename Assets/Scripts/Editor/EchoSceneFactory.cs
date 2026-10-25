@@ -27,6 +27,7 @@ namespace Echo.EditorTools
             EnsureScene(MainMenuPath, BuildMainMenu, false);
             EnsureScene(SandboxPath, BuildSandbox, false);
             EchoShowcaseFactory.Ensure();
+            EchoShowcaseFactory.EnsureConcept();
             EchoLevelFactory.EnsureAll();
         }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Linq;
 using Echo.Audio;
 using Echo.Core;
 using Echo.UI;
@@ -11,11 +12,12 @@ using UnityEngine.UI;
 namespace Echo.Presentation
 {
     /// <summary>
-    /// Presentation phase 3 (Design): an in-engine slide deck. Each slide points the camera at a
-    /// dressed section of the scene (the hero's animations, the threats, one biome) or shows a
-    /// UI overlay (palette, interface), with a title and a short caption. Every biome slide plays
-    /// that biome's music and light.
-    /// Left/right (A/D, arrows, D-pad) or the on-screen arrows browse; Esc goes to the main menu.
+    /// An in-engine slide deck for the presentations: the concept deck (phases 1 and 2) and the
+    /// design deck (phase 3). Each slide points the camera at a dressed section of the scene or
+    /// shows a UI overlay (a diagram, the palette), with a title and a short caption, and plays
+    /// that section's music and light. A slide can wait for a later phase (the diagrams appear
+    /// from phase 2). Left/right (A/D, arrows, D-pad) or the on-screen arrows browse; Esc goes to
+    /// the main menu when the phase has one.
     /// </summary>
     public class DesignShowcase : MonoBehaviour
     {
@@ -39,6 +41,8 @@ namespace Echo.Presentation
             public GameObject overlay;
             [Tooltip("How much the world is darkened behind the overlay.")]
             [Range(0f, 1f)] public float dim;
+            [Tooltip("Shown from this presentation phase on (Everything = always).")]
+            public PresentationPhase fromPhase = PresentationPhase.Everything;
         }
 
         [SerializeField] Slide[] slides = Array.Empty<Slide>();
@@ -67,6 +71,12 @@ namespace Echo.Presentation
 
         void Awake()
         {
+            // An earlier phase doesn't show what it hasn't reached yet.
+            var phase = PresentationMode.Phase;
+            if (phase != PresentationPhase.Everything)
+                slides = slides.Where(s => s.fromPhase == PresentationPhase.Everything || s.fromPhase <= phase).ToArray();
+            menuButton.gameObject.SetActive(PresentationMode.IsEnabled(Feature.MainMenu));
+
             // Buttons let go of the selection after a click, or Enter would also press them.
             previousButton.onClick.AddListener(() => { Deselect(); Go(index - 1); });
             nextButton.onClick.AddListener(() => { Deselect(); Go(index + 1); });
@@ -196,6 +206,8 @@ namespace Echo.Presentation
 
         void ToMenu()
         {
+            if (!PresentationMode.IsEnabled(Feature.MainMenu))
+                return; // phases 1 and 2 present only this deck
             var loader = SceneLoader.Instance;
             if (loader != null && !loader.IsLoading && SceneLoader.IsInBuild(SceneNames.MainMenu))
                 loader.Load(SceneNames.MainMenu);

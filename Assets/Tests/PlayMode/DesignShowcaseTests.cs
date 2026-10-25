@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using Echo.Core;
 using Echo.Presentation;
 using NUnit.Framework;
@@ -8,7 +9,10 @@ using UnityEngine.TestTools;
 
 namespace Echo.Tests
 {
-    /// <summary>The presentation phase 3 slide deck: browsing, wrap-around and camera moves.</summary>
+    /// <summary>
+    /// The presentation slide decks: the design deck (phase 3) browses, wraps and moves the camera;
+    /// the concept deck shows the pitch in phase 1 and adds the diagrams in phase 2.
+    /// </summary>
     public class DesignShowcaseTests
     {
         [SetUp]
@@ -61,6 +65,39 @@ namespace Echo.Tests
             showcase.Go(showcase.SlideCount);
             yield return null;
             Assert.AreEqual(0, showcase.Index, "going past the last slide wraps to the first");
+        }
+
+        IEnumerator LoadConcept(PresentationPhase phase)
+        {
+            PresentationMode.Override(PresentationConfig.ForPhase(phase));
+            SceneManager.LoadScene(SceneNames.ConceptShowcase);
+            yield return null;
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator ConceptDeckShowsOnlyThePitchInPhase1()
+        {
+            yield return LoadConcept(PresentationPhase.Conception);
+            var showcase = Object.FindFirstObjectByType<DesignShowcase>();
+            Assert.IsNotNull(showcase, "the concept scene has its slide deck");
+            Assert.AreEqual(6, showcase.SlideCount, "title, pitch, core loop, story, platform, scope");
+            // GameObject.Find skips inactive objects, which is exactly what the button should be here.
+            var menu = Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+                .FirstOrDefault(t => t.name == "Menu");
+            Assert.IsNotNull(menu, "the deck has its menu button");
+            Assert.IsFalse(menu.gameObject.activeInHierarchy, "phase 1 has no main menu to go to");
+        }
+
+        [UnityTest]
+        public IEnumerator ConceptDeckAddsTheDiagramsInPhase2()
+        {
+            yield return LoadConcept(PresentationPhase.Diagrams);
+            var showcase = Object.FindFirstObjectByType<DesignShowcase>();
+            Assert.AreEqual(12, showcase.SlideCount, "the pitch plus six diagrams");
+            showcase.Go(9);
+            yield return null;
+            Assert.IsTrue(GameObject.Find("GuardianOverlay") != null, "the Guardian's state machine is on screen");
         }
     }
 }

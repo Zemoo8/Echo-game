@@ -12,6 +12,10 @@ namespace Echo.Platform
     /// </summary>
     public class GamePixManager : MonoBehaviour
     {
+        // With no answer for this long (and no ad on screen), carry on: off the GamePix portal the
+        // SDK may never call back, and a level must never wait forever for an ad.
+        const float NoResponseTimeout = 3f;
+
         public static GamePixManager Instance { get; private set; }
 
         /// <summary>True while GamePix has paused the game (ad on screen, portal pause).</summary>
@@ -23,6 +27,7 @@ namespace Echo.Platform
         bool wasPaused;
         bool interstitialPending;
         Action interstitialDone;
+        float lastAdActivity;
 
         void Awake()
         {
@@ -44,6 +49,14 @@ namespace Echo.Platform
         void Update()
         {
             bool paused = Gpx.IsGamePaused;
+            if (interstitialPending)
+            {
+                if (paused)
+                    lastAdActivity = Time.unscaledTime; // an ad is on screen: wait for it
+                else if (Time.unscaledTime - lastAdActivity > NoResponseTimeout)
+                    FinishInterstitial();
+            }
+
             if (paused == wasPaused)
                 return;
 
@@ -67,6 +80,7 @@ namespace Echo.Platform
 
             interstitialPending = true;
             interstitialDone = onDone;
+            lastAdActivity = Time.unscaledTime;
             Gpx.Ads.InterstitialAd(FinishInterstitial, FinishInterstitial);
         }
 

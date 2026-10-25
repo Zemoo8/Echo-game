@@ -114,12 +114,17 @@ namespace Echo.EditorTools
 
         /// <summary>One still per design-showcase slide (world and interface): design_01.png onward.</summary>
         [MenuItem("ECHO/Tools/Capture Design Showcase Slides")]
-        public static void CaptureShowcase()
+        public static void CaptureShowcase() => CaptureDeck(EchoShowcaseFactory.ScenePath, "design_");
+
+        [MenuItem("ECHO/Tools/Capture Concept Screenshots")]
+        public static void CaptureConcept() => CaptureDeck(EchoShowcaseFactory.ConceptPath, "concept_");
+
+        static void CaptureDeck(string scenePath, string prefix)
         {
             if (!Application.isBatchMode && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                 return;
 
-            EditorSceneManager.OpenScene(EchoShowcaseFactory.ScenePath, OpenSceneMode.Single);
+            EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
             var camera = Camera.main;
             var showcase = Object.FindFirstObjectByType<DesignShowcase>();
             Directory.CreateDirectory(OutputFolder);
@@ -152,7 +157,7 @@ namespace Echo.EditorTools
                 image.Apply();
                 RenderTexture.active = null;
 
-                string path = $"{OutputFolder}/design_{i + 1:00}.png";
+                string path = $"{OutputFolder}/{prefix}{i + 1:00}.png";
                 File.WriteAllBytes(path, image.EncodeToPNG());
                 Object.DestroyImmediate(image);
                 Debug.Log($"[ECHO Capture] {path}");

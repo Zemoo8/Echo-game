@@ -22,12 +22,22 @@ removing any later work** from the project.
 | `PresentationMode.IsEnabled(Feature.X)` | `Assets/Scripts/Presentation/PresentationConfig.cs` | What gameplay code asks before using a feature (e.g. dash, VFX, boss). |
 | `PresentationGate` component | `Assets/Scripts/Presentation/PresentationGate.cs` | Put on any scene object; it switches itself off when its feature is hidden. |
 | Boot routing | `BootSceneController` | Picks the first scene for the phase (concept showcase, design showcase or main menu). |
-| Editor menu | **ECHO > Presentation** | One click per phase. The active phase has a checkmark. |
+| Editor menu | **ECHO > Presentation** | One click per phase: it sets the phase and runs it from the Boot scene. The active phase has a checkmark. `Play From Start` restarts it. |
 | Debug overlay | `DevOverlay` (backquote key) | Shows FPS / scene / state / phase. Visible from the start in Phase 6. |
 
 ### Switching phase
 
-- **In Unity:** `ECHO > Presentation > Phase N` (or `Show Everything`), then press Play or make a build.
+1. Open the project in Unity.
+2. In the top menu bar, open **ECHO > Presentation** and click what to show: a phase
+   (`Phase 1 - Conception` … `Phase 8 - GamePix`; each name says which slides or levels it
+   shows) or `Show Everything - Entire Game`. The active one has a checkmark.
+3. That click also starts the game from the Boot scene, so the phase opens on its own first
+   screen. If the game is already running, it stops and starts again in the new phase.
+4. `Play From Start` in the same menu restarts the active phase. Unity's own Play button plays
+   whatever scene is open instead, which is how to jump straight into one level: open its scene
+   from `Assets/Scenes/Levels/` and press Play (with `Show Everything` selected).
+
+- **Builds:** a WebGL / GamePix build keeps the phase that was selected when it was built.
 - **Fine-tuning a demo:** open `PresentationConfig` and use *Force Enabled* / *Force Disabled*
   to add or remove single features without changing the phase.
 - **Before a GamePix release build:** set `Phase 8 - GamePix` (enables ads, hides the debug overlay).
@@ -38,8 +48,8 @@ Status key: **Ready** = can be demonstrated now · **Partial** = some parts exis
 
 | # | Phase | What is presented | In-engine start scene | Features on at runtime | Status |
 |---|-------|-------------------|------------------------|------------------------|--------|
-| 1 | Conception | Pitch: "Every dash is a decision", core loop, story premise, target platform (GamePix/WebGL), scope | `Showcase_Concept` | Concept showcase only | Planned |
-| 2 | Diagrams / Schemas | Architecture & class diagrams, game-state machine, boss state machine, scene flow, energy economy per level (in `Docs/`) | `Showcase_Concept` | Concept showcase only | Planned |
+| 1 | Conception | Pitch: "Every dash is a decision", core loop, story premise, target platform (GamePix/WebGL), scope | `Showcase_Concept` | Concept showcase only | Ready: `Showcase_Concept` is a six-slide pitch deck in the engine (title, pitch, core loop, story, platform, scope), browsed like the design deck. This phase has no main menu. Stills in `Docs/Screenshots/concept_*.png`. |
+| 2 | Diagrams / Schemas | Architecture & class diagrams, game-state machine, boss state machine, scene flow, energy economy per level (in `Docs/`) | `Showcase_Concept` | Concept showcase only | Ready: the same deck with six diagram slides added after the pitch (12 slides in all), the Guardian's state machine among them. Stills in `Docs/Screenshots/concept_*.png`. The written diagrams in `Docs/` are not there yet. |
 | 3 | Design | Visual style guide (palette, player, enemies, tiles), level layouts, UI mockups | `Showcase_Design` | Showcases + main menu | Ready: `Showcase_Design` is a nine-slide deck in the engine (intro, color language, the hero's animations, threats and tools, the four biomes with their light and music, the interface kit), browsed with A/D, the arrows or the on-screen buttons; Esc goes to the main menu. Stills of every slide are in `Docs/Screenshots/design_*.png`; art direction and sources in `Docs/VISUAL_OVERHAUL_PLAN.md`. |
 | 4 | Development | Playable core: movement, jump, dash, energy, hazards, enemies, switches, breakable doors, checkpoints, HUD, pause, save, touch controls. Levels 1–2. Placeholder visuals, no juice. | `MainMenu` | Core gameplay + game shell + Levels 1–2 + basic audio | Ready: **Levels 1–2** are playable from the main menu (Play, then Level 1 leads into Level 2, and Level 2 back to the menu: Phase 4 ends there): movement, jump, dash, energy, pits, timed laser gates, drones and turrets (a dash destroys them), consoles that open shutters and switch lasers off, dash-only barriers and exit doors, checkpoints, context hints for keyboard, gamepad and touch, the HUD, pause menu, and saved progress (Continue / New game, sound switches). Design notes: `Docs/LEVEL_DESIGN.md`. For a Phase 4 demo the polish (animation, VFX, music) is switched off by the phase, as intended. |
 | 5 | 2D Animation | Phase 4 plus player/enemy animations, dash trail & afterimages, particles, camera feedback. Level 3. | `MainMenu` | Phase 4 + animation, VFX, camera feedback, Level 3 | Partial: animated player, dash trail and afterimages, particles, camera shake and hit-stop, animated drones, and **Level 3 (Energy Core)**, playable after Level 2: cracked plates that give way, core locks that open only while you hold enough charge, the reactor. Turret firing animation not built yet. |

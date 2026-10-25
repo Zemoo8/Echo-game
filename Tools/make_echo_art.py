@@ -772,6 +772,17 @@ def wall_port():
     save(img, "Core", "WallPort.png")
 
 
+def ui_arrowhead():
+    """9x9 white arrowhead pointing right, for the concept deck's diagrams (tinted at runtime)."""
+    img = Image.new("RGBA", (9, 9), CLEAR)
+    px = img.load()
+    for y in range(9):
+        reach = 8 - abs(y - 4) * 2
+        for x in range(0, reach + 1):
+            px[x, y] = WHITE
+    save(img, "UI", "Arrowhead.png")
+
+
 def ui_boss_cells():
     """14x6 boss health segments: full (danger red, lit top line) and empty (dark glass)."""
     for name, full in (("BossCellFull", True), ("BossCellEmpty", False)):
@@ -830,4 +841,5 @@ if __name__ == "__main__":
         shockwave(i)
     wall_port()
     ui_boss_cells()
+    ui_arrowhead()
     print("Wrote ECHO pixel art to", os.path.abspath(OUT))

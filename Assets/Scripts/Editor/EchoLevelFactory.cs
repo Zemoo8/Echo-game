@@ -596,6 +596,8 @@ namespace Echo.EditorTools
             EchoPrefabFactory.SetReference(turret, "body", body);
             EchoPrefabFactory.SetReference(turret, "sprite", renderer);
             EchoPrefabFactory.SetReference(turret, "boltSprite", EchoArtFactory.LoadSprite("Assets/Art/Pixel/Gameplay/TurretBolt.png"));
+            EchoPrefabFactory.SetReference(turret, "idleFrame", frames[0]);
+            EchoPrefabFactory.SetReference(turret, "chargeFrame", frames[5]);
             var settings = new SerializedObject(turret);
             settings.FindProperty("facing").intValue = facing;
             settings.FindProperty("interval").floatValue = interval;

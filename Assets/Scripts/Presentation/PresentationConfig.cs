@@ -31,6 +31,14 @@ namespace Echo.Presentation
         public PresentationPhase Phase => phase;
         public Feature EnabledFeatures => (FeaturesFor(phase) | forceEnabled) & ~forceDisabled;
 
+        /// <summary>A config for one phase, for tests and tools (the game reads the Resources asset).</summary>
+        public static PresentationConfig ForPhase(PresentationPhase value)
+        {
+            var config = CreateInstance<PresentationConfig>();
+            config.phase = value;
+            return config;
+        }
+
         /// <summary>Default feature set for each phase. Later phases build on earlier ones.</summary>
         public static Feature FeaturesFor(PresentationPhase phase)
         {

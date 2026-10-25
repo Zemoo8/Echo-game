@@ -65,6 +65,7 @@ namespace Echo.EditorTools
             EchoSceneFactory.RebuildMainMenu();
             EchoSceneFactory.RebuildSandbox();
             EchoShowcaseFactory.Rebuild();
+            EchoShowcaseFactory.RebuildConcept();
             EchoLevelFactory.RebuildLevel1();
             EchoLevelFactory.RebuildLevel2();
             EchoLevelFactory.RebuildLevel3();

@@ -17,7 +17,7 @@ namespace Echo.EditorTools
     /// the threats, and one set per biome); the canvas holds the titles, captions and the
     /// palette, label and interface overlays. Code-generated, never hand-edited.
     /// </summary>
-    public static class EchoShowcaseFactory
+    public static partial class EchoShowcaseFactory
     {
         public static string ScenePath => $"{EchoSceneFactory.ScenesFolder}/Presentation/{SceneNames.DesignShowcase}.unity";
 
@@ -302,21 +302,54 @@ namespace Echo.EditorTools
                             EnvironmentKit lab, EnvironmentKit security, EnvironmentKit core, EnvironmentKit reactor)
         {
             var plain = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            var canvas = CreateCanvas("ShowcaseCanvas", null, 0);
+            var showcase = Deck("ShowcaseCanvas", camera, globalLight, lab.voidColor, out var overlays);
 
-            var dimmer = NewImage("Dimmer", canvas, EchoSpriteFactory.Load(EchoSpriteFactory.Square), WithAlpha(lab.voidColor, 0f));
-            Stretch(dimmer.rectTransform);
-
-            // Overlays sit between the dimmer and the titles.
-            var intro = IntroOverlay(canvas, plain);
-            var palette = PaletteOverlay(canvas, plain);
-            var heroLabels = Labels(canvas, "HeroLabels", HeroX, HeroX, HeroSpots, -0.7f, "IDLE", "RUN", "JUMP", "DASH", "VICTORY");
-            var threatLabels = Labels(canvas, "ThreatLabels", ThreatsX, ThreatsX, ThreatSpots, -0.7f,
+            var intro = IntroOverlay(overlays, plain);
+            var palette = PaletteOverlay(overlays, plain);
+            var heroLabels = Labels(overlays, "HeroLabels", HeroX, HeroX, HeroSpots, -0.7f, "IDLE", "RUN", "JUMP", "DASH", "VICTORY");
+            var threatLabels = Labels(overlays, "ThreatLabels", ThreatsX, ThreatsX, ThreatSpots, -0.7f,
                                       "DRONE", "TURRET", "PIT", "ENERGY CELL", "BARRIER", "WAY OUT"); // no X: it reads as H in Kenney Future
-            var reactorLabels = Labels(canvas, "ReactorLabels", ReactorX, ReactorX, new[] { -1.5f, 4.5f }, 1.2f, "CALM", "OVERLOAD");
-            var ui = InterfaceOverlay(canvas, plain);
+            var reactorLabels = Labels(overlays, "ReactorLabels", ReactorX, ReactorX, new[] { -1.5f, 4.5f }, 1.2f, "CALM", "OVERLOAD");
+            var ui = InterfaceOverlay(overlays, plain);
 
-            // Titles, caption, page and navigation.
+            var slides = new List<SlideData>
+            {
+                new SlideData("PHASE 3 · DESIGN", "VISUAL DESIGN",
+                    "A dark sci-fi facility told in one neon language. Pixel art at 32 px per unit, rendered at 640×360 and scaled up sharp to any screen.",
+                    LabX, lab, MusicId.Menu, intro, 0.72f),
+                new SlideData("ART DIRECTION", "COLOR LANGUAGE",
+                    "Every color has one job, so any screen reads at a glance. Cyan is energy, warm red is danger, green is the way out. Nothing friendly is ever warm.",
+                    LabX, lab, MusicId.Menu, palette, 0.88f),
+                new SlideData("CHARACTER", "THE HERO",
+                    "Recolored from Ansimuz's Warped City hero: a white jacket with cool shading (yellow would read as danger), magenta hair and a cyan accent. Squash and stretch on every jump and landing.",
+                    HeroX, lab, MusicId.Lab, heroLabels, 0f),
+                new SlideData("GAMEPLAY OBJECTS", "THREATS AND TOOLS",
+                    "Danger is always warm: pits glow red and enemy eyes burn red. Energy cells and the barriers a dash breaks are cyan; the exit door is green. Drones and turrets guard the security wing, and a dash destroys them.",
+                    ThreatsX, lab, MusicId.Lab, threatLabels, 0f),
+                new SlideData("SECTOR 1", lab.displayName, lab.description, LabX, lab, lab.music, null, 0f),
+                new SlideData("SECTOR 2", security.displayName, security.description, SecurityX, security, security.music, null, 0f),
+                new SlideData("SECTOR 3", core.displayName, core.description, CoreX, core, core.music, null, 0f),
+                new SlideData("FINAL ARENA", reactor.displayName, reactor.description, ReactorX, reactor, reactor.music, reactorLabels, 0f),
+                new SlideData("UI", "INTERFACE",
+                    "Drawn in the same palette: dark translucent panels, white Kenney Future text, cyan for anything energy. The meter shows exactly how many dashes are left.",
+                    LabX, lab, MusicId.Menu, ui, 0.88f),
+            };
+            WriteSlides(showcase, slides);
+        }
+
+        // A deck's frame: a dimmer over the world, a layer for the slides' overlays, then the
+        // titles, caption, page number and navigation on top.
+        static DesignShowcase Deck(string name, Camera camera, UnityEngine.Rendering.Universal.Light2D globalLight,
+                                   Color voidColor, out RectTransform overlays)
+        {
+            var plain = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            var canvas = CreateCanvas(name, null, 0);
+
+            var dimmer = NewImage("Dimmer", canvas, EchoSpriteFactory.Load(EchoSpriteFactory.Square), WithAlpha(voidColor, 0f));
+            Stretch(dimmer.rectTransform);
+            overlays = NewRect("Overlays", canvas);
+            Stretch(overlays);
+
             var subtitle = NewLabel("Subtitle", canvas, "", 13, EchoPalette.Energy, TextAnchor.MiddleLeft);
             Place(subtitle.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(40f, -22f), new Vector2(600f, 20f));
             var title = NewLabel("Title", canvas, "", 28, Color.white, TextAnchor.MiddleLeft);
@@ -350,30 +383,7 @@ namespace Echo.EditorTools
             EchoPrefabFactory.SetReference(showcase, "previousButton", previous);
             EchoPrefabFactory.SetReference(showcase, "nextButton", next);
             EchoPrefabFactory.SetReference(showcase, "menuButton", menu);
-
-            var slides = new List<SlideData>
-            {
-                new SlideData("PHASE 3 · DESIGN", "VISUAL DESIGN",
-                    "A dark sci-fi facility told in one neon language. Pixel art at 32 px per unit, rendered at 640×360 and scaled up sharp to any screen.",
-                    LabX, lab, MusicId.Menu, intro, 0.72f),
-                new SlideData("ART DIRECTION", "COLOR LANGUAGE",
-                    "Every color has one job, so any screen reads at a glance. Cyan is energy, warm red is danger, green is the way out. Nothing friendly is ever warm.",
-                    LabX, lab, MusicId.Menu, palette, 0.88f),
-                new SlideData("CHARACTER", "THE HERO",
-                    "Recolored from Ansimuz's Warped City hero: a white jacket with cool shading (yellow would read as danger), magenta hair and a cyan accent. Squash and stretch on every jump and landing.",
-                    HeroX, lab, MusicId.Lab, heroLabels, 0f),
-                new SlideData("GAMEPLAY OBJECTS", "THREATS AND TOOLS",
-                    "Danger is always warm: pits glow red and enemy eyes burn red. Energy cells and the barriers a dash breaks are cyan; the exit door is green. Drones and turrets guard the security wing, and a dash destroys them.",
-                    ThreatsX, lab, MusicId.Lab, threatLabels, 0f),
-                new SlideData("SECTOR 1", lab.displayName, lab.description, LabX, lab, lab.music, null, 0f),
-                new SlideData("SECTOR 2", security.displayName, security.description, SecurityX, security, security.music, null, 0f),
-                new SlideData("SECTOR 3", core.displayName, core.description, CoreX, core, core.music, null, 0f),
-                new SlideData("FINAL ARENA", reactor.displayName, reactor.description, ReactorX, reactor, reactor.music, reactorLabels, 0f),
-                new SlideData("UI", "INTERFACE",
-                    "Drawn in the same palette: dark translucent panels, white Kenney Future text, cyan for anything energy. The meter shows exactly how many dashes are left.",
-                    LabX, lab, MusicId.Menu, ui, 0.88f),
-            };
-            WriteSlides(showcase, slides);
+            return showcase;
         }
 
         sealed class SlideData
@@ -383,10 +393,12 @@ namespace Echo.EditorTools
             public readonly EnvironmentKit Kit;
             public readonly MusicId Music;
             public readonly GameObject Overlay;
+            public readonly PresentationPhase FromPhase;
 
             public SlideData(string subtitle, string title, string caption, float cameraX, EnvironmentKit kit, MusicId music,
-                             GameObject overlay, float dim)
+                             GameObject overlay, float dim, PresentationPhase fromPhase = PresentationPhase.Everything)
             {
+                FromPhase = fromPhase;
                 Subtitle = subtitle;
                 Title = title;
                 Caption = caption;
@@ -417,6 +429,7 @@ namespace Echo.EditorTools
                 element.FindPropertyRelative("music").enumValueIndex = (int)slide.Music;
                 element.FindPropertyRelative("overlay").objectReferenceValue = slide.Overlay;
                 element.FindPropertyRelative("dim").floatValue = slide.Dim;
+                element.FindPropertyRelative("fromPhase").enumValueIndex = (int)slide.FromPhase;
                 if (slide.Overlay != null)
                     slide.Overlay.SetActive(false);
             }
