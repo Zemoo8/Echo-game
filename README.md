@@ -5,6 +5,17 @@ A futuristic 2D platformer built in Unity for the browser (GamePix / WebGL).
 **Every dash is a decision.** Each dash costs one energy charge, and every level ends with a door
 that only a dash can break, so the player always has to keep one charge in reserve.
 
+## Livrables (fin de projet)
+
+| | |
+|---|---|
+| Description du projet (FR) | [Docs/DESCRIPTION.md](Docs/DESCRIPTION.md) |
+| Vidéo de présentation, paquet GamePix (`.gpx`) | [Release v1.0.0](https://github.com/Zemoo8/Echo-game/releases/tag/v1.0.0) |
+| GamePix | Game page created on MyGamePix (ID 81E293), awaiting the build upload and review |
+
+The video is cut by `python Tools/make_video.py` from gameplay captured in Unity
+(`-runTests -testPlatform PlayMode -testFilter Echo.Tests.TrailerCapture`, frames in `Recordings/`).
+
 ## Project
 
 | | |

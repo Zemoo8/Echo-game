@@ -116,3 +116,6 @@ InitTestScene*.unity*
 # GamePix plugin build output (cleared on every GamePix build)
 /html5/
 *.gpx
+
+# Deliverables folder (video, .gpx, PDF): shared directly and attached to the GitHub release
+/livrable/

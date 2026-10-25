@@ -17,7 +17,7 @@ All paths start at the project folder (`Echo-game/`).
 | `Assets/ThirdParty/` | Free CC0 packs: `Ansimuz/` (player, enemies, backdrops), `Kenney/` (sounds, font, particle textures), `SRG774/` (music) |
 | `Assets/Plugins/GamePix/` | The GamePix plugin 6.4 (WebGL build, ads, storage) |
 | `Assets/Tests/` | Automated tests: `EditMode/` and `PlayMode/` |
-| `Tools/` | Python scripts: `import_assets.py` (copies and recolors the free packs), `make_echo_art.py` (draws ECHO's pixel art) |
+| `Tools/` | Python scripts: `import_assets.py` (copies and recolors the free packs), `make_echo_art.py` (draws ECHO's pixel art), `make_diagrams.py` (the UML diagrams), `make_video.py` (cuts the presentation video from the captured footage) |
 | `Docs/` | `LEVEL_DESIGN.md`, `VISUAL_OVERHAUL_PLAN.md`, `Screenshots/` |
 | `html5/` | Output of the GamePix build (`index.html`, `Build/`, the `.gpx` package). Not committed to git |
 | Project root | `README.md` (controls, how to work on it), `PRESENTATION_PHASES.md` (the phases), `ASSET_LICENSES.md` (every asset and its license) |
@@ -142,6 +142,7 @@ Full list with links: `ASSET_LICENSES.md`.
 | `PlayMode/BossTests.cs` | 6 | The Guardian's rules, and a bot that wins the fight |
 | `PlayMode/DesignShowcaseTests.cs` | 3 | The slide decks for Phases 1, 2 and 3 |
 | `PlayMode/FullGameTests.cs` | 1 | Bots play the whole game |
+| `PlayMode/TrailerCapture.cs` | 6 (explicit, not in the 52) | Films the presentation video's footage: bots play each part while every frame is saved to `Recordings/` |
 
 ## 8. Technology
 

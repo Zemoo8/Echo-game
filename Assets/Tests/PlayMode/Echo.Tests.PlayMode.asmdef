@@ -3,7 +3,9 @@
     "rootNamespace": "Echo.Tests",
     "references": [
         "Echo",
-        "UnityEngine.TestRunner"
+        "UnityEngine.TestRunner",
+        "Unity.RenderPipelines.Universal.Runtime",
+        "Unity.RenderPipelines.Universal.2D.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
